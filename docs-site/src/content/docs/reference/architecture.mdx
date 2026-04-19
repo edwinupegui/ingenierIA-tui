@@ -1,0 +1,141 @@
+---
+title: Arquitectura
+description: Workspace de 6 crates, patron Action-Reducer y estructura de modulos
+sidebar:
+  order: 4
+---
+
+## Workspace de crates
+
+ingenierIA TUI es un workspace Rust con 6 crates:
+
+| Crate | LOC | Responsabilidad |
+|-------|-----|-----------------|
+| `ingenieria-tui` (binario) | ~37K | Aplicacion principal: app handlers, UI, workers, services |
+| `ingenieria-domain` | ~1.8K | Tipos del dominio. Zero dependencias internas |
+| `ingenieria-ui` | ~1.7K | 6 themes (TokyoNight default, Solarized, Gruvbox, Monokai, Matrix, HighContrast), design system, primitivas, a11y, frame throttle |
+| `ingenieria-api` | ~1.3K | ChatEvent, ToolDefinition, ModelInfo, pricing, retry, metrics |
+| `ingenieria-runtime` | ~2.4K | Session, audit, memory, config validation, permisos |
+| `ingenieria-tools` | ~1.4K | Bash + 7 validators, hooks types, MCP truncation |
+
+## Feature flags
+
+| Feature | Incluye | Default |
+|---------|---------|---------|
+| `full` | copilot + mcp + autoskill + ide | Si |
+| `minimal` | Core TUI + Claude solamente | No |
+| `copilot` | GitHub Copilot OAuth + provider | Parte de full |
+| `mcp` | MCP tool discovery + ejecucion | Parte de full |
+| `autoskill` | Deteccion de techs + skill installer | Parte de full |
+| `ide` | IDE Bridge HTTP server (Axum) | Parte de full |
+
+## Patron Action-Reducer
+
+ingenierIA TUI sigue un patron **Elm-like Action-Reducer** con flujo de datos unidireccional:
+
+```
+Workers (tokio::spawn) ──> Action ──> MPSC Channel ──> App::handle() ──> AppState ──> render()
+```
+
+### Flujo de datos
+
+1. **Workers** corren como tareas async (`tokio::spawn`) y producen valores `Action`
+2. **Actions** se envian a traves de un canal MPSC (capacidad: 100)
+3. **App::handle()** es el reducer — el unico lugar que muta `AppState`
+4. **render()** recibe `&AppState` (inmutable) y dibuja la UI
+
+## Responsabilidades por modulo
+
+| Modulo | Responsabilidad |
+|--------|-----------------|
+| `app/` | 35 handler files del reducer por pantalla. Unico lugar que muta estado |
+| `state/` | `AppState` con 15+ sub-modulos. Solo tipos y defaults |
+| `actions.rs` | Enum `Action` (~120+ variantes). Solo tipos |
+| `domain/` | Re-exports de `ingenieria-domain`. Sin logica |
+| `services/` | 41+ modulos: HTTP, AI providers, tools, MCP, agents, bridge, cron, lsp, plugins, recovery, onboarding, doctor, structured output |
+| `ui/` | 18+ modulos de renderizado puro con ratatui. Recibe `&AppState` inmutable |
+| `workers/` | 10 tareas async de larga duracion. Solo envian Actions |
+| `registries/` | Plugin registry + Agent registry |
+| `utils/` | Helpers de texto (truncate, visible_width) |
+| `config.rs` | Resolucion de configuracion con Levenshtein validation |
+
+## Workers
+
+| Worker | Fuente | Eventos |
+|--------|--------|---------|
+| `keyboard.rs` | Input del terminal (Kitty protocol) | Eventos de teclado → Actions |
+| `sse.rs` | `/api/events` | Server-sent events (sync, reload, session) |
+| `health.rs` | `/api/health` | Polling de estado de salud |
+| `tick.rs` | Timer 250ms | Ticks de animacion y refresh UI |
+| `tool_events.rs` | `/api/tool-events` | Feed de invocaciones MCP tool |
+| `hook_events.rs` | `/api/hook-events` | Eventos de hooks de compliance |
+| `cron_worker.rs` | Timer 30s | Evalua expresiones cron y dispara jobs |
+| `file_watcher.rs` | notify (inotify/kqueue) | Cambios en config.json, keybindings.json, CLAUDE.md, .env |
+| `process_monitor.rs` | Procesos hijos | Captura stdout/stderr de comandos monitoreados |
+
+## Pantallas
+
+| Pantalla | Descripcion |
+|----------|-------------|
+| `Splash` | Pantalla de bienvenida con logo ASCII e input de chat |
+| `Wizard` | Wizard de configuracion en 4 pasos |
+| `Dashboard` | Panel principal con sidebar + vista previa de documentos |
+| `Init` | Inicializacion de proyecto (detecta stack, genera archivos) |
+| `Chat` | Conversacion AI con streaming, tool calling y panels overlay |
+
+### Modales pickers
+
+| Modal | Activador | Proposito |
+|-------|-----------|-----------|
+| `ThemePicker` | `:theme` | Selector entre 6 themes |
+| `ModelPicker` | `:model` | Cambio de modelo AI sin reconectar |
+| `AutoskillPicker` | `:autoskill` | Instalacion batch de skills segun stack detectado |
+
+## Separacion `/` slash vs `:` palette
+
+Invariante del dispatcher:
+
+- `/` (42 comandos) → **solo chat**: sesion, contexto AI, agents, todos, memoria, workflows.
+- `:` (26 comandos) → **config/ops/nav**: sync, diagnostico, navegacion, exploradores, configuracion, instalacion.
+
+Si un slash eliminado se escribe, el reducer responde con hint de redireccion (ver `is_migrated_to_palette`).
+
+## Reglas criticas
+
+- `ui/` **NUNCA** importa de `services/`
+- `domain/` no depende de nada interno
+- Maximo **400 lineas** por archivo — dividir por responsabilidad si se excede
+- Maximo **40 lineas** por funcion — extraer subfunciones
+- No `.unwrap()` en codigo de produccion — usar `?` o `unwrap_or`
+- Sin efectos secundarios en funciones de render (`ui/*.rs`)
+- Sin allocaciones en heap en render salvo que sea inevitable — preferir `&str`, `Cow<str>`
+- Todo estado observable vive en `AppState` — sin estado externo
+
+## Tools
+
+### Tools del sistema de archivos
+
+| Tool | Descripcion |
+|------|-------------|
+| `read_file` | Leer contenido de un archivo |
+| `list_directory` | Listar entradas de un directorio |
+| `search_files` | Buscar archivos por patron de nombre |
+| `grep_files` | Buscar contenido en archivos por regex |
+| `write_file` | Escribir contenido en un archivo |
+
+### Tools MCP
+
+| Tool | Descripcion |
+|------|-------------|
+| `get_factory_context` | Obtener contexto completo de una factory |
+| `get_workflow` | Obtener un workflow especifico |
+| `validate_compliance` | Ejecutar validacion de compliance |
+| `sync_project` | Sincronizar documentos desde el servidor |
+| `search_documents` | Buscar en todos los documentos |
+| `get_document` | Obtener un documento especifico por URI |
+| `list_factories` | Listar factories disponibles |
+| `get_agents` | Listar agentes conectados |
+
+### ConfigTool
+
+Tool adaptativo que permite al AI modificar campos de configuracion del TUI. Las operaciones se validan contra el schema antes de aplicarse.

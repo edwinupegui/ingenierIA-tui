@@ -1,0 +1,81 @@
+---
+title: Configuracion
+description: Wizard de configuracion y opciones disponibles
+sidebar:
+  order: 2
+---
+
+## Wizard de configuracion
+
+Al primer inicio, el wizard te guia en 4 pasos:
+
+### 1. Server URL
+
+Ingresa la URL del servidor sc-mcp-ingenieria. El wizard valida la conexion haciendo un request a `/api/health`.
+
+```
+Server URL: http://localhost:3001
+Verificando... ✓ Conectado
+```
+
+### 2. Nombre
+
+Tu identidad como desarrollador. Se usa para identificar tu sesion en el servidor.
+
+### 3. Modelo AI
+
+Selecciona el provider de AI y luego el modelo:
+
+**GitHub Copilot**
+- Autenticacion via OAuth device flow (abre navegador para autorizar)
+- Modelos disponibles se cargan dinamicamente desde la API de Copilot
+
+**Claude API**
+- Ingresa tu API key de Anthropic
+- Modelos: Sonnet 4, Haiku 4.5, Opus 4
+
+### 4. Factory / Rol
+
+Selecciona tu contexto de trabajo:
+
+| Factory | Stack | Descripcion |
+|---------|-------|-------------|
+| **Net** | .NET, C# | Backend APIs, Clean Architecture, CQRS |
+| **Ang** | Angular, TypeScript | Frontend, componentes standalone, signals |
+| **Nest** | NestJS, TypeScript | BFF, API Gateway, decorators, guards |
+| **All** | Full Stack | Acceso a todos los contextos |
+
+## Archivos de configuracion
+
+| Archivo | Proposito |
+|---------|-----------|
+| `~/.config/ingenieria-tui/config.json` | Config global: server_url, developer, provider, model, default_factory |
+| `~/.config/ingenieria-tui/claude_key` | API key de Claude (persistencia segura) |
+| `~/.config/ingenieria-tui/keybindings.json` | Atajos de teclado personalizados |
+| `~/.config/ingenieria-tui/history/` | Sesiones guardadas (mensajes, tool calls, metadata) |
+| `.mcp.json` (en proyecto) | URL del servidor + clientes configurados |
+
+## Resolucion de configuracion
+
+La configuracion se resuelve por prioridad (mayor a menor):
+
+1. **Argumentos CLI** (`--server-url`)
+2. **Variables de entorno** (`INGENIERIA_SERVER_URL`, etc.)
+3. **`.mcp.json` local** (busca hacia arriba en directorios)
+4. **Config global** (`~/.config/ingenieria-tui/config.json`)
+5. **Defaults** (`http://localhost:3001`)
+
+## Cambiar configuracion despues
+
+| Comando | Accion |
+|---------|--------|
+| `:config` | Reabrir el wizard (incluye accion "Reset desde cero") |
+| `:model` | Abre ModelPicker (cambia modelo sin reconectar) |
+| `:disconnect` | Desconectar provider (elimina token) |
+| `:theme` | Abre ThemePicker (6 variantes: TokyoNight, Solarized, Gruvbox, Monokai, Matrix, HighContrast) |
+| `:permissions` | Cicla modo (Standard → Permissive → Strict) |
+| `:autoskill` | Abre modal para instalar skills segun el stack detectado |
+
+:::tip
+Puedes abrir el command palette con `:` desde cualquier pantalla para acceder a estos comandos.
+:::

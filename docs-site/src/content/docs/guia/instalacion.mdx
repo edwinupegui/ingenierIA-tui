@@ -1,0 +1,90 @@
+---
+title: Instalacion
+description: Como instalar y ejecutar ingenierIA TUI
+sidebar:
+  order: 1
+---
+
+## Requisitos
+
+- **Node.js** 16 o superior (para instalar via npm)
+- **Servidor** [ingenieria-mcp](https://github.com/your-org/ingenieria-mcp) corriendo (por defecto en `localhost:3001`)
+- **Sistema operativo**: macOS (Apple Silicon o Intel), Linux x64 o Windows x64
+
+## Instalacion via npm
+
+```bash
+npm install -g @your-org/ingenieria
+```
+
+Eso es todo. npm descarga el binario nativo para tu plataforma y lo registra en el PATH global. El build por defecto incluye todas las features (`full`): Copilot, MCP, AutoSkill e IDE Bridge. Desde cualquier terminal puedes escribir:
+
+```bash
+ingenierIA
+```
+
+:::tip
+Para actualizar a la ultima version:
+```bash
+npm update -g @your-org/ingenieria
+```
+:::
+
+## Compilar desde source
+
+El proyecto usa un workspace Rust con 6 crates. Para compilar desde source:
+
+```bash
+git clone https://github.com/your-org/ingenieria-tui
+cd sc-ingenieria-tui
+cargo build --release
+```
+
+### Feature flags
+
+| Feature | Descripcion | Incluido en full |
+|---------|-------------|------------------|
+| `full` | Todas las features (default) | — |
+| `minimal` | Core TUI + Claude solamente | No |
+| `copilot` | GitHub Copilot OAuth | Si |
+| `mcp` | MCP tool discovery | Si |
+| `autoskill` | Deteccion de techs | Si |
+| `ide` | IDE Bridge HTTP (Axum) | Si |
+
+```bash
+# Build minimo (sin Copilot, MCP, AutoSkill ni IDE Bridge)
+cargo build --release --no-default-features --features minimal
+```
+
+## Variables de entorno opcionales
+
+| Variable | Descripcion | Ejemplo |
+|----------|-------------|---------|
+| `INGENIERIA_SERVER_URL` | URL del servidor MCP | `http://localhost:3001` |
+| `INGENIERIA_DEVELOPER` | Nombre del desarrollador | `edwin` |
+| `INGENIERIA_MODEL` | Modelo AI a usar | `claude-sonnet-4-20250514` |
+| `INGENIERIA_PROVIDER` | Provider de AI | `github-copilot`, `claude-api` o `mock` |
+
+## Argumento CLI
+
+```bash
+# Especificar URL del servidor directamente
+ingenierIA --server-url http://mi-servidor:3001
+
+# Ver version instalada
+ingenierIA --version
+
+# Reconfigurar perfil
+ingenierIA --config
+
+# Modo offline con mock provider
+ingenierIA --mock
+```
+
+## Verificar instalacion
+
+Al ejecutar `ingenierIA`, deberias ver la **splash screen** con el logo ASCII de ingenierIA. Si el servidor esta corriendo, el indicador mostrara `Server: online` en verde.
+
+:::note
+Si es la primera vez que ejecutas ingenierIA TUI, el **wizard de configuracion** se abrira automaticamente. Consulta la [guia de configuracion](/guia/configuracion/) para mas detalles.
+:::

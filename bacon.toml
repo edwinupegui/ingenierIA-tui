@@ -1,0 +1,25 @@
+# bacon configuration for ingenierIA TUI
+# Run with: bacon clippy (default) or bacon run
+
+default_job = "clippy"
+
+[jobs.clippy]
+command = ["cargo", "clippy", "--", "-D", "warnings"]
+need_stdout = false
+watch = ["src"]
+
+[jobs.check]
+command = ["cargo", "check"]
+need_stdout = false
+watch = ["src"]
+
+[jobs.run]
+command = ["cargo", "run"]
+need_stdout = true
+watch = ["src"]
+allow_warnings = true
+
+[jobs.fmt-check]
+command = ["cargo", "fmt", "--check"]
+need_stdout = true
+watch = ["src"]

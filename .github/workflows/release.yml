@@ -1,0 +1,412 @@
+name: Release ingenierIA TUI
+
+on:
+  push:
+    tags:
+      - "tui-v*" # tui-v1.0.0, tui-v1.2.3, etc.
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  build:
+    name: Build · ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # ── Mac Silicon (M1/M2/M3/M4) ───────────────────────────────────────
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            binary: ingenieria
+            archive: ingenieria-aarch64-apple-darwin.tar.gz
+
+          # ── Mac Intel ───────────────────────────────────────────────────────
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            binary: ingenieria
+            archive: ingenieria-x86_64-apple-darwin.tar.gz
+
+          # ── Windows 64-bit ──────────────────────────────────────────────────
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            binary: ingenieria.exe
+            archive: ingenieria-x86_64-pc-windows-msvc.zip
+
+          # ── Linux x86-64 (binario estático, sin libc) ───────────────────────
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            binary: ingenieria
+            archive: ingenieria-x86_64-unknown-linux-musl.tar.gz
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── Rust toolchain con el target requerido ─────────────────────────────
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      # ── musl-tools y dependencias de sistema para Linux musl ──────────────
+      - name: Install musl-tools & X11 libs (Linux)
+        if: matrix.target == 'x86_64-unknown-linux-musl'
+        run: sudo apt-get update && sudo apt-get install -y musl-tools libxcb-shape0-dev libxcb-xfixes0-dev libxcb-render0-dev libxcb1-dev
+
+      # ── Caché de artefactos de Cargo ───────────────────────────────────────
+      - name: Cache Cargo registry & build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ matrix.target }}-cargo-${{ hashFiles('Cargo.lock') }}
+          restore-keys: ${{ matrix.target }}-cargo-
+
+      # ── Compilación release ────────────────────────────────────────────────
+      - name: Build release binary
+        run: cargo build --release --target ${{ matrix.target }}
+
+      # ── Empaquetar (Unix) ──────────────────────────────────────────────────
+      - name: Package binary (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          cp target/${{ matrix.target }}/release/${{ matrix.binary }} ingenieria
+          tar czf ${{ matrix.archive }} ingenieria
+          rm ingenieria
+
+      # ── Empaquetar (Windows) ───────────────────────────────────────────────
+      - name: Package binary (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Copy-Item "target\${{ matrix.target }}\release\${{ matrix.binary }}" "ingenieria.exe"
+          Compress-Archive -Path "ingenieria.exe" -DestinationPath "${{ matrix.archive }}"
+
+      # ── Subir binario compilado (para los jobs de instaladores) ────────────
+      - name: Upload raw binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: binary-${{ matrix.target }}
+          path: target/${{ matrix.target }}/release/${{ matrix.binary }}
+          retention-days: 1
+
+      # ── Subir como artefacto descargable ──────────────────────────────────
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.archive }}
+          path: ${{ matrix.archive }}
+          retention-days: 90
+
+      # ── Publicar en el GitHub Release ─────────────────────────────────────
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ matrix.archive }}
+          generate_release_notes: true
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # Instalador .pkg para macOS
+  # ══════════════════════════════════════════════════════════════════════════
+  installer-macos:
+    name: Instalador .pkg · macOS
+    needs: build
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        include:
+          - target: aarch64-apple-darwin
+            arch_label: apple-silicon
+          - target: x86_64-apple-darwin
+            arch_label: intel
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Descargar binario
+        uses: actions/download-artifact@v4
+        with:
+          name: binary-${{ matrix.target }}
+          path: bin
+
+      - name: Extraer versión del tag
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#tui-v}" >> "$GITHUB_OUTPUT"
+
+      - name: Generar .pkg
+        run: |
+          chmod +x bin/ingenieria
+          sh installers/macos/build-pkg.sh bin/ingenieria ${{ steps.version.outputs.version }}
+
+      - name: Renombrar .pkg con nombre genérico
+        run: |
+          mv ingenieria-${{ steps.version.outputs.version }}-macos-installer.pkg ingenieria-macos-${{ matrix.arch_label }}.pkg
+
+      - name: Subir .pkg
+        uses: actions/upload-artifact@v4
+        with:
+          name: ingenieria-macos-${{ matrix.arch_label }}.pkg
+          path: "ingenieria-macos-${{ matrix.arch_label }}.pkg"
+          retention-days: 90
+
+      - name: Publicar .pkg en GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: "ingenieria-macos-${{ matrix.arch_label }}.pkg"
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # Instalador .exe para Windows (NSIS)
+  # ══════════════════════════════════════════════════════════════════════════
+  installer-windows:
+    name: Instalador .exe · Windows
+    needs: build
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Descargar binario
+        uses: actions/download-artifact@v4
+        with:
+          name: binary-x86_64-pc-windows-msvc
+          path: installers/windows
+
+      - name: Extraer versión del tag
+        id: version
+        shell: bash
+        run: echo "version=${GITHUB_REF_NAME#tui-v}" >> "$GITHUB_OUTPUT"
+
+      - name: Instalar NSIS
+        shell: pwsh
+        run: choco install nsis -y --no-progress
+
+      - name: Generar icono placeholder
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "installers/windows/ingenieria.ico")) {
+            # Generate a valid .ico file (16x16 RGBA)
+            $ms = New-Object System.IO.MemoryStream
+            $bw = New-Object System.IO.BinaryWriter($ms)
+            $bw.Write([UInt16]0); $bw.Write([UInt16]1); $bw.Write([UInt16]1)
+            $bw.Write([byte]16); $bw.Write([byte]16); $bw.Write([byte]0); $bw.Write([byte]0)
+            $bw.Write([UInt16]1); $bw.Write([UInt16]32)
+            $dataSize = 40 + (16*16*4)
+            $bw.Write([UInt32]$dataSize); $bw.Write([UInt32]22)
+            $bw.Write([UInt32]40); $bw.Write([Int32]16); $bw.Write([Int32]32)
+            $bw.Write([UInt16]1); $bw.Write([UInt16]32); $bw.Write([UInt32]0)
+            $bw.Write([UInt32]0); $bw.Write([Int32]0); $bw.Write([Int32]0)
+            $bw.Write([UInt32]0); $bw.Write([UInt32]0)
+            for ($i = 0; $i -lt 256; $i++) { $bw.Write([byte]72); $bw.Write([byte]55); $bw.Write([byte]45); $bw.Write([byte]255) }
+            $bw.Flush()
+            [System.IO.File]::WriteAllBytes("installers/windows/ingenieria.ico", $ms.ToArray())
+            $bw.Dispose(); $ms.Dispose()
+          }
+
+      - name: Compilar instalador NSIS
+        shell: pwsh
+        run: |
+          & "C:\Program Files (x86)\NSIS\makensis.exe" "-DPRODUCT_VERSION=${{ steps.version.outputs.version }}" installers\windows\ingenieria.nsi
+
+      - name: Renombrar instalador con nombre genérico
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.version }}"
+          $expected = "ingenieria-$version-windows-x64-setup.exe"
+          $generic = "ingenieria-windows-x64-setup.exe"
+          if (Test-Path "installers/windows/$expected") {
+            Move-Item "installers/windows/$expected" "$generic"
+          } else {
+            Get-ChildItem "installers/windows/*.exe" | ForEach-Object { Move-Item $_.FullName "$generic" }
+          }
+
+      - name: Subir instalador .exe
+        uses: actions/upload-artifact@v4
+        with:
+          name: ingenieria-windows-x64-setup.exe
+          path: "ingenieria-windows-x64-setup.exe"
+          retention-days: 90
+
+      - name: Publicar .exe en GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: "ingenieria-windows-x64-setup.exe"
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # Publicar en npm (paquetes privados @your-org/ingenieria-*)
+  # ══════════════════════════════════════════════════════════════════════════
+  npm-publish:
+    name: Publicar npm
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Extraer version del tag
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#tui-v}" >> "$GITHUB_OUTPUT"
+
+      # Descargar los 4 binarios compilados
+      - name: Descargar binario macOS ARM64
+        uses: actions/download-artifact@v4
+        with:
+          name: binary-aarch64-apple-darwin
+          path: dist
+
+      - name: Renombrar binario macOS ARM64
+        run: mv dist/ingenieria dist/ingenieria-aarch64-apple-darwin
+
+      - name: Descargar binario macOS x64
+        uses: actions/download-artifact@v4
+        with:
+          name: binary-x86_64-apple-darwin
+          path: dist
+
+      - name: Renombrar binario macOS x64
+        run: mv dist/ingenieria dist/ingenieria-x86_64-apple-darwin
+
+      - name: Descargar binario Linux x64
+        uses: actions/download-artifact@v4
+        with:
+          name: binary-x86_64-unknown-linux-musl
+          path: dist
+
+      - name: Renombrar binario Linux x64
+        run: mv dist/ingenieria dist/ingenieria-x86_64-unknown-linux-musl
+
+      - name: Descargar binario Windows x64
+        uses: actions/download-artifact@v4
+        with:
+          name: binary-x86_64-pc-windows-msvc
+          path: dist
+
+      - name: Renombrar binario Windows x64
+        run: mv dist/ingenieria.exe dist/ingenieria-x86_64-pc-windows-msvc.exe
+
+      - name: Preparar paquetes npm
+        run: bash scripts/npm-prepare.sh ${{ steps.version.outputs.version }}
+
+      # Verificacion de seguridad: ningun .rs, .map, ni source code
+      - name: Verificar que no hay source code en los paquetes
+        run: |
+          echo "==> Verificando que no se filtra source code..."
+          for dir in npm/ingenieria npm/ingenieria-darwin-arm64 npm/ingenieria-darwin-x64 npm/ingenieria-win32-x64 npm/ingenieria-linux-x64; do
+            packed=$(cd "$dir" && npm pack --dry-run 2>&1)
+            if echo "$packed" | grep -qE '\.(rs|ts|map|toml|lock)$'; then
+              echo "ERROR: Source code detectado en $dir:"
+              echo "$packed" | grep -E '\.(rs|ts|map|toml|lock)$'
+              exit 1
+            fi
+          done
+          echo "OK: ningun source code en los paquetes"
+
+      # Publicar paquetes de plataforma primero, luego el principal
+      - name: Publicar @your-org/ingenieria-darwin-arm64
+        run: cd npm/ingenieria-darwin-arm64 && npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publicar @your-org/ingenieria-darwin-x64
+        run: cd npm/ingenieria-darwin-x64 && npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publicar @your-org/ingenieria-win32-x64
+        run: cd npm/ingenieria-win32-x64 && npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publicar @your-org/ingenieria-linux-x64
+        run: cd npm/ingenieria-linux-x64 && npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publicar @your-org/ingenieria (principal)
+        run: cd npm/ingenieria && npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # Bundle completo (todo junto, listo para compartir)
+  # ══════════════════════════════════════════════════════════════════════════
+  bundle:
+    name: Bundle para compartir
+    needs: [build, installer-macos, installer-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (scripts)
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts
+
+      - name: Descargar todos los artefactos
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: Armar paquete de distribución
+        run: |
+          mkdir -p bundle
+
+          # Binarios comprimidos
+          find dist -type f \( -name "*.tar.gz" -o -name "*.zip" \) -exec cp {} bundle/ \;
+
+          # Instaladores nativos (.pkg y .exe)
+          find dist -type f \( -name "*.pkg" -o -name "*-setup.exe" \) -exec cp {} bundle/ \;
+
+          # Scripts de instalación local (alternativa)
+          cp scripts/install-local.sh bundle/
+          cp scripts/install-local.ps1 bundle/
+
+          # Instrucciones
+          printf '%s\n' \
+            "ingenierIA TUI - Instalacion" \
+            "============================" \
+            "" \
+            "--- Instaladores (recomendado) ---" \
+            "" \
+            "macOS:" \
+            "  Doble clic en: ingenieria-*-macos-*.pkg" \
+            "  (apple-silicon para M1/M2/M3/M4, intel para Macs antiguos)" \
+            "" \
+            "Windows:" \
+            "  Doble clic en: ingenieria-*-windows-x64-setup.exe" \
+            "  Siguiente > Siguiente > Listo" \
+            "" \
+            "--- Instalacion manual (alternativa) ---" \
+            "" \
+            "Mac / Linux:" \
+            "  sh install-local.sh" \
+            "" \
+            "Windows PowerShell:" \
+            "  .\\install-local.ps1" \
+            "" \
+            "--- Despues de instalar ---" \
+            "" \
+            "Abre una terminal y ejecuta: ingenierIA" \
+            "La primera vez se te pedira configurar tu perfil." \
+            > bundle/INSTRUCCIONES.txt
+
+          echo "  Contenido del bundle:"
+          ls -lh bundle/
+
+      - name: Subir bundle completo
+        uses: actions/upload-artifact@v4
+        with:
+          name: ingenieria-bundle-distribucion
+          path: bundle/
+          retention-days: 90

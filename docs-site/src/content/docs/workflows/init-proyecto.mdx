@@ -1,0 +1,81 @@
+---
+title: Init proyecto
+description: Inicializar un proyecto con ingenierIA TUI
+sidebar:
+  order: 1
+---
+
+## Iniciar el flujo
+
+Dos formas de iniciar la inicializacion:
+- **`:init`** desde el command palette
+- **`Ctrl+N`** desde cualquier pantalla
+
+## Auto-deteccion de stack
+
+El TUI analiza el directorio actual buscando archivos clave:
+
+| Archivo detectado | Stack identificado |
+|-------------------|-------------------|
+| `*.csproj` | .NET (factory Net) |
+| `angular.json` | Angular (factory Ang) |
+| `nest-cli.json` | NestJS (factory Nest) |
+| Combinaciones | Full Stack (factory All) |
+
+:::tip
+Si la deteccion automatica no identifica tu stack, usa `:autoskill` para forzar la deteccion o seleccionar manualmente.
+:::
+
+## Seleccion de cliente
+
+Elige que cliente(s) configurar:
+
+| Cliente | Que genera |
+|---------|-----------|
+| **Claude Code** | `CLAUDE.md` con instrucciones del proyecto |
+| **Copilot** | Instrucciones personalizadas para Copilot |
+| **Ambos** | Genera archivos para los dos clientes |
+
+## Archivos generados
+
+### `.mcp.json`
+
+Configuracion del servidor MCP:
+
+```json
+{
+  "ingenieriaServerUrl": "http://localhost:3001",
+  "clients": ["claude-code"]
+}
+```
+
+### `CLAUDE.md`
+
+Instrucciones para Claude Code con:
+- Contexto del proyecto y su stack
+- Reglas y convenciones de la factory
+- Referencia a skills y workflows disponibles
+
+### Instrucciones personalizadas
+
+Segun el stack detectado, se generan instrucciones especificas (patrones, convenciones, estructura de carpetas).
+
+## Flujo completo
+
+```
+Abrir TUI
+  → :init o Ctrl+N
+    → Detecta stack automaticamente
+      → Selecciona clientes (Claude Code / Copilot / Ambos)
+        → Genera archivos de configuracion
+          → Listo para usar con tu AI de preferencia
+```
+
+## Comando autoskill
+
+El comando `:autoskill` es una alternativa rapida que:
+1. Detecta el stack tecnologico del directorio actual
+2. Ajusta la factory activa automaticamente
+3. No genera archivos — solo cambia el contexto
+
+Util cuando cambias entre proyectos de distintas factories.

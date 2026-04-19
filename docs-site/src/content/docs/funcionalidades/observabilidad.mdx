@@ -1,0 +1,100 @@
+---
+title: Observabilidad
+description: Paneles de monitoreo en tiempo real
+sidebar:
+  order: 6
+---
+
+ingenierIA TUI incluye multiples paneles overlay para monitorear la actividad del sistema en tiempo real. Se abren desde el dashboard o chat y se cierran con `Esc`.
+
+## Tool Monitor (`T`)
+
+Feed en vivo de invocaciones MCP. Muestra:
+- Nombre de la herramienta invocada
+- Factory asociada
+- Duracion en milisegundos
+- Timestamp del evento
+- Estado: invoke, complete, error
+
+Los eventos llegan via SSE desde `/api/tool-events`. Usa `f` para filtrar entre Todos / Ok / Errores.
+
+## Enforcement Dashboard (`H`)
+
+Monitor de hooks y guards de compliance:
+
+| Tipo de evento | Significado |
+|---------------|-------------|
+| `hook:check` | Verificacion ejecutada |
+| `hook:pass` | Regla cumplida |
+| `hook:block` | Violacion bloqueada |
+
+Cuando un hook bloquea, muestra la **regla especifica** que fue violada. Los eventos llegan desde `/api/hook-events`.
+
+## Agent Panel (`K`)
+
+Vista de tareas agrupadas por herramienta:
+- Nombre del agente/herramienta
+- Numero de invocaciones
+- Latencia promedio
+- Estado actual
+
+## Notification Center (`N`)
+
+Historial completo de toasts del sistema:
+
+| Nivel | Uso |
+|-------|-----|
+| **Info** | Mensajes informativos generales |
+| **Success** | Operaciones completadas exitosamente |
+| **Warning** | Advertencias que requieren atencion |
+| **Error** | Errores que requieren accion |
+
+Los toasts se muestran automaticamente por 3 segundos (maximo 4 simultaneos). El Notification Center guarda el historial completo.
+
+## Cost Panel (`$`)
+
+Disponible en el chat con la tecla `$`. Muestra:
+- **Tokens de entrada** por turno
+- **Tokens de salida** por turno
+- **Tokens de cache** (prompt cache hits)
+- **Precio calculado** segun el modelo activo
+- **Budget alerts** al 80% y 100% del presupuesto
+- **Acumulado** de la sesion completa
+
+:::note
+El calculo de costos se basa en los precios oficiales del provider. Para Claude Sonnet: $3/M tokens de entrada, $15/M tokens de salida.
+:::
+
+## Doctor Panel
+
+Accesible via `:doctor` (command palette). Ejecuta health checks automaticos:
+- Latencia del servidor MCP
+- Validacion de configuracion (campos desconocidos, typos)
+- Espacio en disco disponible
+- Conteo de tools MCP descubiertos
+- Estado del LSP (si esta conectado)
+
+Los resultados se muestran en un panel overlay con indicadores de estado por check.
+
+## Sessions Panel
+
+Lista sesiones activas del servidor con heartbeat SSE. Muestra conexiones actuales y su estado.
+
+## Onboarding Checklist
+
+Panel de primer uso con 5 pasos a completar:
+
+1. Configurar servidor
+2. Configurar provider AI
+3. Explorar dashboard
+4. Iniciar un chat
+5. Ejecutar compliance
+
+El checklist se auto-dismiss despues de 3 segundos o al completar todos los pasos. El progreso se persiste en `onboarding.json`.
+
+## Transcript Modal (`Ctrl+O`)
+
+Overlay de transcripcion completa de la sesion de chat. Dentro del modal:
+- `Ctrl+F` para buscar texto en la transcripcion
+- `↑`/`↓` para scroll
+- `Esc` para cerrar

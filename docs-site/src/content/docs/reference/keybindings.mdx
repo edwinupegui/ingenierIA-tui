@@ -1,0 +1,188 @@
+---
+title: Atajos de teclado
+description: Referencia completa de atajos (global, pantallas, pickers, overlays)
+sidebar:
+  order: 1
+---
+
+## Global
+
+| Tecla | Accion |
+|-------|--------|
+| `Esc` | Cerrar overlay / volver atras |
+| `Ctrl+C` (primero) | Pre-confirmacion: muestra "Presiona Ctrl+C de nuevo para salir" |
+| `Ctrl+C` (segundo, dentro de 1.5s) | Sale de la aplicacion |
+| `Ctrl+D` | Abrir dashboard |
+| `Ctrl+E` | Salir al splash |
+| `Ctrl+N` | Inicializar proyecto |
+| `/` | Abre autocomplete del chat (solo en chat/splash) |
+| `:` | Abre el command palette (cualquier pantalla) |
+
+:::tip[Double Ctrl+C]
+ingenierIA TUI usa **double Ctrl+C** para evitar salidas accidentales. El primer `Ctrl+C` arma una confirmacion con ventana de 1.5s; un segundo `Ctrl+C` dentro de ese plazo cierra. Cualquier otra tecla cancela la confirmacion.
+:::
+
+## Splash
+
+| Tecla | Accion |
+|-------|--------|
+| _(escribir)_ | Componer mensaje |
+| `Enter` | Enviar mensaje e iniciar chat |
+| `Tab` | Cambiar factory (Net → Ang → Nest → All) |
+
+## Dashboard
+
+### Navegacion
+
+| Tecla | Accion |
+|-------|--------|
+| `↓` / `↑` | Mover en el sidebar |
+| `Space` | Expandir/colapsar seccion |
+| `Enter` | Abrir documento |
+| `/` | Busqueda fuzzy |
+| `:` | Paleta de comandos |
+
+### Scroll de vista previa
+
+| Tecla | Accion |
+|-------|--------|
+| `PageUp` / `PageDown` | Scroll por pagina completa |
+| `Alt+↑` / `Alt+↓` | Scroll linea a linea |
+
+### Acciones rapidas
+
+| Tecla | Accion |
+|-------|--------|
+| `y` | Copiar contenido del documento |
+| `Y` | Copiar slash command equivalente |
+
+:::note
+La tecla `S` del dashboard (scan AutoSkill) fue reemplazada por `:autoskill` — abre un modal con checkboxes para instalar skills recomendadas. Ver [AutoSkill](/funcionalidades/autoskill/).
+:::
+
+### Paneles overlay
+
+| Tecla | Accion |
+|-------|--------|
+| `T` | Monitor de Tools |
+| `H` | Dashboard de Enforcement |
+| `K` | Panel de Agentes |
+| `N` | Centro de Notificaciones |
+
+## Chat
+
+### Input
+
+| Tecla | Accion |
+|-------|--------|
+| `Enter` | Enviar mensaje |
+| `Shift+Enter` | Nueva linea (multilinea) |
+| `Alt+Enter` / `Ctrl+Enter` | Nueva linea (alternativa) |
+| `Ctrl+L` | Limpiar chat |
+| `↑` / `↓` | Navegar historial de inputs |
+| `Ctrl+Z` / `Ctrl+Y` | Undo / Redo en el input |
+| `Ctrl+R` | Busqueda reversa en historial de inputs |
+
+### Modo de agente
+
+| Tecla | Accion |
+|-------|--------|
+| `⇧Tab` | Ciclar modo de agente: Ask → Auto → Plan |
+
+El modo activo se muestra en la barra de estado del chat: `[? ASK]` (amarillo), `[⚡ AUTO]` (verde), `[◈ PLAN]` (azul).
+
+### Overlays en chat
+
+| Tecla | Accion |
+|-------|--------|
+| `$` | Alternar panel de costos |
+| `Ctrl+O` | Alternar transcripcion de sesion |
+| `Ctrl+F` | Buscar en transcripcion (cuando esta abierta) |
+| `t` | Alternar detalles expandidos del tool |
+| `PageUp` / `PageDown` | Scroll por pagina |
+| `Alt+↑` / `Alt+↓` | Scroll linea a linea |
+
+### Tool approval
+
+| Tecla | Accion |
+|-------|--------|
+| `Enter` | Aprobar tools seleccionados |
+| `Esc` | Denegar todos los tools pendientes |
+| `↑` / `↓` | Mover cursor entre tools pendientes |
+| `Space` | Seleccionar / deseleccionar tool bajo cursor |
+| `y` / `n` | Aprobar / Denegar tool call (cursor actual) |
+| `Y` | Aceptar todo — aprobar todos los tools en lote |
+| `N` | Denegar todo — rechazar todos los tools en lote |
+| `a` | Siempre permitir este tool (persiste en lista) |
+| `d` | Siempre denegar este tool (persiste en lista) |
+| `⇧Tab` | Cambiar a modo AUTO — auto-aprueba todos los tools sin preguntar |
+
+## Command palette
+
+| Tecla | Accion |
+|-------|--------|
+| `:` | Abrir paleta (en cualquier pantalla) |
+| _(escribir)_ | Filtrar comandos (fuzzy) |
+| `↑` / `↓` | Navegar resultados |
+| `Enter` | Ejecutar comando |
+| `Esc` | Cerrar paleta |
+
+## Pickers modales
+
+### ThemePicker (`:theme`)
+
+| Tecla | Accion |
+|-------|--------|
+| `↑` / `↓` | Navegar entre los 6 themes |
+| `Enter` | Aplicar theme seleccionado |
+| `Esc` | Cerrar sin cambios |
+
+### ModelPicker (`:model`)
+
+| Tecla | Accion |
+|-------|--------|
+| `↑` / `↓` | Navegar modelos disponibles |
+| `Enter` | Cambiar al modelo seleccionado |
+| `Esc` | Cerrar |
+
+### AutoskillPicker (`:autoskill`)
+
+| Tecla | Accion |
+|-------|--------|
+| `↑` / `↓` | Navegar items |
+| `Space` | Toggle seleccion (solo skills no instaladas) |
+| `Enter` | Instalar skills seleccionadas en batch |
+| `Esc` | Cerrar sin cambios |
+
+Checkboxes: `[✓]` instalada (no toggle), `[x]` seleccionada para instalar, `[ ]` disponible.
+
+## Process Monitor (panel fullscreen)
+
+| Tecla | Accion |
+|-------|--------|
+| `↑` / `↓` | Scroll manual |
+| `f` | Toggle modo follow (auto-scroll al final) |
+| `k` | Matar el proceso |
+| `Esc` | Cerrar panel |
+
+## Monitor de Tools
+
+| Tecla | Accion |
+|-------|--------|
+| `f` | Cambiar filtro (Todos / Ok / Errores) |
+
+## Revision de plan
+
+| Tecla | Accion |
+|-------|--------|
+| `a` | Aprobar plan |
+| `e` | Editar plan |
+| `r` | Rechazar plan |
+
+## Atajos eliminados
+
+| Tecla | Estado | Reemplazo |
+|-------|--------|-----------|
+| `Ctrl+T` (ciclar theme) | Eliminado | `:theme` abre el picker con 6 variantes |
+| `S` (scan autoskill en dashboard) | Eliminado | `:autoskill` abre el modal |
+| `/brief` | Eliminado | El chat siempre renderiza modo normal |

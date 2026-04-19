@@ -1,0 +1,9 @@
+[package]
+name        = "ingenieria-ui"
+version.workspace = true
+edition.workspace = true
+description = "UI primitives, theme, design system, and accessibility for ingenierIA TUI"
+
+[dependencies]
+ingenieria-domain = { path = "../ingenieria-domain" }
+ratatui         = "0.30"

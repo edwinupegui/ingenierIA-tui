@@ -1,0 +1,193 @@
+---
+// Factory Switcher — mimics the TUI's Tab factory cycling
+---
+
+<factory-switcher>
+    <nav class="factory-tabs" aria-label="Factory selector">
+        <button data-factory="net" class="factory-tab" title=".NET / C#"
+            >Net</button
+        >
+        <button
+            data-factory="ang"
+            class="factory-tab"
+            title="Angular / TypeScript">Ang</button
+        >
+        <button
+            data-factory="nest"
+            class="factory-tab"
+            title="NestJS / TypeScript">Nest</button
+        >
+        <button data-factory="all" class="factory-tab active" title="Full Stack"
+            >All</button
+        >
+    </nav>
+</factory-switcher>
+
+<style>
+    .factory-tabs {
+        display: flex;
+        gap: 2px;
+        align-items: center;
+        margin-right: 0.5rem;
+    }
+
+    .factory-tab {
+        font-family: var(--sl-font-mono);
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 3px 8px;
+        border: 1px solid var(--sl-color-gray-4);
+        border-radius: 4px;
+        background: transparent;
+        color: var(--sl-color-gray-2);
+        cursor: pointer;
+        transition: all 0.15s ease;
+        letter-spacing: 0.02em;
+    }
+
+    .factory-tab:hover {
+        border-color: var(--sl-color-gray-3);
+        color: var(--sl-color-white);
+    }
+
+    .factory-tab.active {
+        color: var(--sl-color-white);
+        font-weight: 700;
+    }
+
+    .factory-tab[data-factory="net"].active {
+        border-color: var(--factory-net);
+        background: color-mix(in srgb, var(--factory-net) 15%, transparent);
+        color: var(--factory-net);
+    }
+
+    .factory-tab[data-factory="ang"].active {
+        border-color: var(--factory-ang);
+        background: color-mix(in srgb, var(--factory-ang) 15%, transparent);
+        color: var(--factory-ang);
+    }
+
+    .factory-tab[data-factory="nest"].active {
+        border-color: var(--factory-nest);
+        background: color-mix(in srgb, var(--factory-nest) 15%, transparent);
+        color: var(--factory-nest);
+    }
+
+    .factory-tab[data-factory="all"].active {
+        border-color: var(--factory-all);
+        background: color-mix(in srgb, var(--factory-all) 15%, transparent);
+        color: var(--factory-all);
+    }
+</style>
+
+<script>
+    class FactorySwitcher extends HTMLElement {
+        connectedCallback() {
+            const buttons =
+                this.querySelectorAll<HTMLButtonElement>(".factory-tab");
+            const saved = localStorage.getItem("ingenieria-factory") || "all";
+
+            this.setFactory(saved, buttons);
+
+            buttons.forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    const factory = btn.dataset.factory!;
+                    this.setFactory(factory, buttons);
+                    localStorage.setItem("ingenieria-factory", factory);
+                });
+            });
+        }
+
+        setFactory(factory: string, buttons: NodeListOf<HTMLButtonElement>) {
+            // Update tabs
+            buttons.forEach((b) =>
+                b.classList.toggle("active", b.dataset.factory === factory),
+            );
+
+            // Set CSS custom property on root for accent theming
+            const root = document.documentElement;
+            const colors: Record<
+                string,
+                { accent: string; accentHigh: string; accentLow: string }
+            > = {
+                net: {
+                    accent: "#68217a",
+                    accentHigh: "#c490d1",
+                    accentLow: "#1a1040",
+                },
+                ang: {
+                    accent: "#c82333",
+                    accentHigh: "#e8828b",
+                    accentLow: "#2a0a0e",
+                },
+                nest: {
+                    accent: "#48bb78",
+                    accentHigh: "#9ae6b4",
+                    accentLow: "#0a2618",
+                },
+                all: {
+                    accent: "#4a9eff",
+                    accentHigh: "#90c5ff",
+                    accentLow: "#0a1a30",
+                },
+            };
+
+            // Light theme accent lows
+            const lightAccentLow: Record<string, string> = {
+                net: "#f0e6f3",
+                ang: "#fce8ea",
+                nest: "#e6f7ed",
+                all: "#e6f0ff",
+            };
+
+            const c = colors[factory] || colors.all;
+            root.style.setProperty("--sl-color-accent", c.accent);
+            root.style.setProperty("--sl-color-accent-high", c.accentHigh);
+
+            const isLight = root.dataset.theme === "light";
+            root.style.setProperty(
+                "--sl-color-accent-low",
+                isLight ? lightAccentLow[factory] || c.accentLow : c.accentLow,
+            );
+
+            // Set data attribute for content filtering
+            root.dataset.factory = factory;
+
+            // Filter factory-specific content
+            document
+                .querySelectorAll("[data-factory-content]")
+                .forEach((el) => {
+                    const elFactory = (el as HTMLElement).dataset
+                        .factoryContent!;
+                    if (
+                        factory === "all" ||
+                        elFactory === factory ||
+                        elFactory === "all"
+                    ) {
+                        (el as HTMLElement).style.display = "";
+                    } else {
+                        (el as HTMLElement).style.display = "none";
+                    }
+                });
+        }
+    }
+
+    customElements.define("factory-switcher", FactorySwitcher);
+
+    // Re-apply on theme change
+    const observer = new MutationObserver(() => {
+        const switcher = document.querySelector(
+            "factory-switcher",
+        ) as FactorySwitcher | null;
+        if (switcher) {
+            const factory = localStorage.getItem("ingenieria-factory") || "all";
+            const buttons =
+                switcher.querySelectorAll<HTMLButtonElement>(".factory-tab");
+            switcher.setFactory(factory, buttons);
+        }
+    });
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ["data-theme"],
+    });
+</script>

@@ -1,0 +1,54 @@
+---
+title: Recovery y File Watcher
+description: Recarga automatica de configuracion y recuperacion ante fallos
+sidebar:
+  order: 15
+---
+
+## File Watcher
+
+El file watcher monitorea archivos criticos y recarga la configuracion automaticamente cuando cambian, sin necesidad de reiniciar el TUI.
+
+### Archivos monitoreados
+
+| Archivo | Accion al cambiar |
+|---------|-------------------|
+| `config.json` | Recarga configuracion completa (servidor, provider, modelo, factory) |
+| `keybindings.json` | Recarga atajos de teclado personalizados |
+| `CLAUDE.md` | Actualiza instrucciones de contexto del proyecto |
+| `.env` | Recarga variables de entorno |
+
+### Implementacion
+
+- Usa el crate `notify` (v7) que mapea a inotify (Linux), kqueue (macOS), fsevents (macOS) segun el OS
+- Debounce de **500ms** para evitar recargas multiples por un solo save
+- Cada cambio emite un `Action` correspondiente (`ConfigChanged`, `KeybindingsChanged`, etc.)
+
+## Recovery Engine
+
+El motor de recovery mapea fallos estructurados (`StructuredFailure`) a recetas de recuperacion con pasos concretos para el usuario.
+
+### Escenarios de recovery
+
+| Escenario | Ejemplo | Accion |
+|-----------|---------|--------|
+| MCP handshake failure | Server no responde | Toast con instrucciones para verificar URL y estado |
+| Config invalida | Campo desconocido en config.json | Sugerencia Levenshtein del campo correcto |
+| Worker crash | SSE desconexion | Reconexion automatica con backoff exponencial (max 30s) |
+| Disco lleno | No se puede guardar sesion | Alerta con sugerencia de limpieza |
+
+### Politicas de escalacion
+
+| Politica | Comportamiento |
+|----------|----------------|
+| `LogAndContinue` | Registra en audit log, la app sigue operando |
+| `AlertHuman` | Toast de warning/error visible al usuario |
+| `Abort` | Terminacion controlada con mensaje de error |
+
+### Categorias de fallo
+
+El audit log clasifica los fallos en **14 categorias**: Network, Auth, Config, MCP, Tool, Permission, Budget, Compaction, Session, File, Worker, LSP, Bridge, Plugin.
+
+:::tip
+Usa `/doctor` para ejecutar health checks que detectan problemas comunes y sugieren acciones de recovery automaticamente.
+:::

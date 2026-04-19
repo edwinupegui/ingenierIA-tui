@@ -1,0 +1,98 @@
+---
+title: Primer uso
+description: Guia rapida para empezar a usar ingenierIA TUI
+sidebar:
+  order: 3
+---
+
+## Splash screen
+
+Al abrir ingenierIA TUI, veras la splash screen con el logo ASCII y el estado del servidor.
+
+Desde aqui puedes:
+- **Escribir directamente** para componer un mensaje e iniciar chat
+- **Tab** para cambiar la factory activa (Net → Ang → Nest → All)
+- **Ctrl+D** para ir al dashboard
+- **Ctrl+N** para inicializar un proyecto
+
+## Onboarding checklist
+
+En el primer uso, aparece un checklist de 5 pasos para guiarte:
+
+1. **Configurar servidor** — verificar conexion con el MCP server
+2. **Configurar provider AI** — seleccionar GitHub Copilot o Claude API
+3. **Explorar dashboard** — navegar skills, policies y workflows
+4. **Iniciar un chat** — enviar tu primer mensaje al AI
+5. **Ejecutar compliance** — validar el proyecto contra policies
+
+El checklist se auto-dismiss despues de 3 segundos o al completar todos los pasos. Puedes ignorarlo sin problemas.
+
+:::tip
+El TUI muestra **tips contextuales** rotativos segun la pantalla activa y el numero de sesiones completadas. Los tips sugieren features que quizas no conoces.
+:::
+
+## Dashboard
+
+El panel principal tiene dos areas:
+
+- **Sidebar izquierda** — 6 secciones expandibles:
+  - Skills, Commands, Workflows, ADRs, Policies, Agents
+- **Preview derecha** — renderizado markdown del documento seleccionado
+
+### Navegacion basica
+
+| Tecla | Accion |
+|-------|--------|
+| `↑` / `↓` | Navegar sidebar |
+| `Space` | Expandir/colapsar seccion |
+| `Enter` | Abrir documento completo |
+| `/` | Busqueda fuzzy |
+| `:` | Command palette |
+| `y` | Copiar contenido |
+| `Y` | Copiar slash command |
+
+## Chat con AI
+
+El chat es la funcionalidad central. Al enviar un mensaje, el AI responde con streaming en tiempo real y tiene acceso completo al contexto de ingenierIA.
+
+```
+Tu: Como implemento autenticacion JWT en este proyecto?
+AI: Basandome en las policies de seguridad de la factory Net...
+    [invocando get_factory_context...]
+```
+
+- **Enter** — enviar mensaje
+- **Shift+Enter** — nueva linea (multilinea)
+- **↑/↓** — navegar historial de inputs previos
+- **Ctrl+Z/Ctrl+Y** — deshacer/rehacer en el input
+- **Ctrl+R** — busqueda reversa en historial
+- **$** — abrir panel de costos
+
+:::note
+El contexto de la factory activa (skills, policies, workflows) se inyecta automaticamente en cada conversacion. Los diagnosticos LSP tambien se incluyen si hay un language server conectado.
+:::
+
+## Command palette
+
+Presiona `:` para abrir el command palette con busqueda fuzzy:
+
+```
+: sync       → sync net, sync ang, sync all...
+: workflow   → workflow add-feature, workflow sprint...
+: doctor     → diagnostico completo: MCP, LSP, bridge, disco
+```
+
+Escribe para filtrar, flechas para navegar, Enter para ejecutar.
+
+## Flujo tipico de trabajo
+
+1. **Abrir** ingenierIA TUI
+2. **Dashboard** — explorar documentos de tu factory (skills, workflows, policies)
+3. **Chat** — preguntar al AI con contexto completo o ejecutar workflows
+4. **Command palette** — acciones rapidas (sync, compliance, cambiar modelo)
+5. **Observabilidad** — monitorear tools (`T`), compliance (`H`), costos (`$`)
+6. **Diagnosticos** — `:doctor` para health checks, errores LSP y estado del IDE Bridge
+
+:::tip
+Si es tu primer proyecto, usa `:init` o `Ctrl+N` para generar los archivos de configuracion (`.mcp.json`, `CLAUDE.md`) automaticamente.
+:::

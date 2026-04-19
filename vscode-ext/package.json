@@ -1,0 +1,61 @@
+{
+  "name": "ingenieria-tui-bridge",
+  "displayName": "ingenierIA TUI Bridge",
+  "description": "VS Code integration for ingenierIA TUI — tool approvals, status, and file navigation",
+  "version": "0.1.0",
+  "publisher": "your-publisher",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "ingenieria.connect",
+        "title": "ingenierIA: Connect to TUI"
+      },
+      {
+        "command": "ingenieria.disconnect",
+        "title": "ingenierIA: Disconnect from TUI"
+      },
+      {
+        "command": "ingenieria.sendContext",
+        "title": "ingenierIA: Send Active File as Context"
+      }
+    ],
+    "configuration": {
+      "title": "ingenierIA TUI Bridge",
+      "properties": {
+        "ingenieria.bridge.port": {
+          "type": "number",
+          "default": 19542,
+          "description": "Port of the ingenierIA TUI bridge server"
+        },
+        "ingenieria.bridge.pollIntervalMs": {
+          "type": "number",
+          "default": 2000,
+          "description": "Polling interval in milliseconds for pending approvals"
+        },
+        "ingenieria.bridge.autoConnect": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically connect to the bridge on startup"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --sourcemap",
+    "watch": "npm run build -- --watch",
+    "package": "vsce package",
+    "lint": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "esbuild": "^0.24.0",
+    "typescript": "^5.7.0"
+  }
+}

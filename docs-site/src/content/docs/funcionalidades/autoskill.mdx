@@ -1,0 +1,132 @@
+---
+title: AutoSkill
+description: Modal interactivo que detecta el stack del proyecto y permite instalar skills recomendadas en batch
+sidebar:
+  order: 8
+---
+
+AutoSkill escanea el proyecto actual, detecta tecnologias, y presenta un **modal con checkboxes** para seleccionar e instalar en batch las skills recomendadas. Unifica las antiguas fuentes (ingenierIA MCP + skills.sh) en una sola lista consolidada.
+
+## Como activar
+
+| Metodo | Donde |
+|--------|-------|
+| `:autoskill` | Command palette (cualquier pantalla) |
+
+:::note[Cambios recientes]
+Los slashes `/autoskill` y `/install-skills` fueron eliminados. Todo el flujo vive ahora bajo `:autoskill` como modal interactivo — feature gated tras `#[cfg(feature = "autoskill")]`.
+:::
+
+## Flujo del modal
+
+```
+┌─ Autoskill — skills recomendadas ───────────────────┐
+│ Proyecto: Nest (TypeScript + Jest)                  │
+│                                                     │
+│ [✓] nest-patterns       ya instalada                │
+│ [✓] typescript-strict   ya instalada                │
+│ [ ] jest-coverage       disponible                  │
+│ [x] e2e-supertest       seleccionada                │
+│                                                     │
+│ 2 instaladas · 1 seleccionada · 1 disponible        │
+│ Space toggle · Enter instalar · Esc cerrar          │
+└─────────────────────────────────────────────────────┘
+```
+
+1. `:autoskill` lanza `spawn_autoskill_scan()` que detecta el stack.
+2. El scan cruza con las skills ya instaladas y produce items `{ path, name, sources, installed, selected }`.
+3. El modal renderiza los items con checkboxes:
+   - `[✓]` — ya instalada, no togglea
+   - `[x]` — seleccionada para instalar
+   - `[ ]` — disponible
+4. `Space` alterna seleccion solo en items no instalados.
+5. `Enter` dispara `spawn_install_skills(selected_paths)` — instalacion en batch con progreso por skill.
+6. `Esc` cierra sin cambios.
+
+## Teclado
+
+| Tecla | Accion |
+|-------|--------|
+| `↑` / `↓` | Navegar items |
+| `Space` | Toggle seleccion (solo disponibles) |
+| `Enter` | Instalar seleccionadas |
+| `Esc` | Cerrar modal |
+
+## Que detecta
+
+### Por ecosistema (26 reglas)
+
+| Ecosistema | Tecnologias |
+|-----------|-------------|
+| **.NET** (factory: net) | .NET, Web API, Entity Framework Core, MediatR (CQRS), FluentValidation, xUnit |
+| **Angular** (factory: ang) | Angular, Angular Material, NgRx, RxJS, Karma/Jasmine |
+| **NestJS** (factory: nest) | NestJS, Swagger, TypeORM, Config, Jest |
+| **Next.js/React** | React, Next.js |
+| **Cross-cutting** | TypeScript, Tailwind CSS, Prisma, ESLint, Docker, Playwright, Vitest, shadcn/ui |
+
+### Metodos de deteccion
+
+- **Packages**: busca en `dependencies` / `devDependencies` de `package.json`
+- **Package prefixes**: scoped packages (`@angular/*`, `@nestjs/*`, `@ngrx/*`)
+- **Config files**: `angular.json`, `nest-cli.json`, `tsconfig.json`, etc.
+- **File extensions**: `.sln`, `.csproj` para proyectos .NET
+- **Content markers**: escanea contenido de `.csproj` hasta 2 niveles
+
+### Combos (9 reglas)
+
+Cuando se detectan dos o mas tecnologias juntas, se sugieren skills especializados:
+
+- Angular + NgRx
+- NestJS + Prisma
+- Next.js + Tailwind CSS
+- Next.js + Prisma
+- Next.js + Playwright
+- React + shadcn/ui
+- Tailwind CSS + shadcn/ui
+- .NET + Angular (Full Stack)
+- NestJS + Angular (Full Stack)
+
+### Frontend bonus
+
+Proyectos con React, Angular o Next.js reciben skills adicionales automaticamente:
+
+- `frontend-design`
+- `accessibility`
+- `seo`
+
+## Deteccion de skills instaladas
+
+El scan verifica si las skills ya estan instaladas buscando en:
+
+1. `skills-lock.json` en la raiz del proyecto
+2. `.agents/skills/` (directorio universal)
+3. `.claude/skills/` (directorio de Claude Code)
+
+Los items instalados aparecen con `[✓]` en el modal y no son seleccionables.
+
+## Deteccion de agentes AI
+
+Al instalar skills, se detectan automaticamente los agentes AI disponibles en `$HOME`:
+
+| Directorio | Agente |
+|------------|--------|
+| `.claude` | claude-code |
+| `.cursor` | cursor |
+| `.copilot` | github-copilot |
+| `.augment` | augment |
+| `.gemini` | gemini-cli |
+| `.amp` | amp |
+
+Las skills se instalan para todos los agentes detectados usando el flag `-a`.
+
+## Feature gate
+
+Todo el flujo esta detras de `#[cfg(feature = "autoskill")]`:
+
+- `AppMode::AutoskillPicker` variant
+- `AppState.autoskill_picker: Option<AutoskillPickerState>`
+- Handlers en `app/autoskill_handler.rs`
+- Widget `ui/widgets/autoskill_picker.rs`
+- Comando palette `autoskill`
+
+Con `--no-default-features --features minimal`, el modal no esta disponible y el comando no aparece en la palette.

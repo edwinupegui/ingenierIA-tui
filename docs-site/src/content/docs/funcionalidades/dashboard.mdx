@@ -1,0 +1,105 @@
+---
+title: Dashboard
+description: Panel principal con sidebar y preview de documentos
+sidebar:
+  order: 1
+---
+
+## Layout
+
+El dashboard se divide en dos paneles:
+
+- **Sidebar izquierda** — 6 secciones expandibles con documentos agrupados por tipo
+- **Preview derecha** — renderizado markdown del documento seleccionado con syntax highlighting
+
+## Secciones de la sidebar
+
+| Seccion | Contenido |
+|---------|-----------|
+| **Skills** | Habilidades y capacidades del proyecto |
+| **Commands** | Comandos custom de la factory |
+| **Workflows** | Flujos de trabajo estructurados |
+| **ADRs** | Architecture Decision Records |
+| **Policies** | Reglas de cumplimiento y gobernanza |
+| **Agents** | Agentes conectados al servidor |
+
+Cada seccion se expande con `Space` y muestra los documentos disponibles para la factory activa.
+
+### Ejemplos de documentos por factory
+
+<div data-factory-content="net">
+
+**Factory Net (.NET / C#)**
+- Skills: `auth-middleware`, `clean-architecture`, `entity-framework`, `cqrs-pattern`
+- Workflows: `add-feature`, `migration`, `security-scan`
+- Policies: `security-gates`, `code-review`, `api-versioning`
+
+</div>
+
+<div data-factory-content="ang">
+
+**Factory Ang (Angular / TypeScript)**
+- Skills: `standalone-components`, `signals`, `material-design`, `reactive-forms`
+- Workflows: `add-feature`, `generate-tests`, `review-pr`
+- Policies: `component-standards`, `accessibility`, `bundle-size`
+
+</div>
+
+<div data-factory-content="nest">
+
+**Factory Nest (NestJS / TypeScript)**
+- Skills: `guards-interceptors`, `swagger-auto`, `typeorm-entities`, `api-gateway`
+- Workflows: `add-feature`, `health-check`, `generate-adr`
+- Policies: `decorator-patterns`, `dto-validation`, `error-handling`
+
+</div>
+
+<div data-factory-content="all">
+
+**Full Stack** — Acceso a todos los documentos de Net, Ang y Nest combinados.
+
+</div>
+
+## Navegacion
+
+| Tecla | Accion |
+|-------|--------|
+| `↑` / `↓` | Mover cursor en sidebar |
+| `Space` | Expandir/colapsar seccion |
+| `Enter` | Abrir documento completo |
+| `Shift+↑/↓` | Scroll del preview |
+| `PageUp/PageDown` | Scroll del preview (pagina completa) |
+
+## Busqueda
+
+Presiona `/` para activar la busqueda fuzzy:
+
+- **Menos de 3 caracteres**: busqueda local con nucleo-matcher
+- **3 o mas caracteres**: busqueda en servidor via `/api/search`
+- Los resultados se filtran en tiempo real
+
+## Acciones sobre documentos
+
+| Tecla | Accion |
+|-------|--------|
+| `y` | Copiar contenido del documento al clipboard |
+| `Y` | Copiar el slash command del documento |
+
+## Filtro por factory
+
+Los documentos se filtran automaticamente segun la factory activa. Puedes cambiar la factory con:
+- `Tab` desde la splash screen
+- `:context net`, `:context ang`, `:context nest` desde el command palette
+
+## Paneles de observabilidad
+
+Desde el dashboard puedes abrir paneles overlay:
+
+| Tecla | Panel |
+|-------|-------|
+| `T` | Tool Monitor — invocaciones MCP en vivo |
+| `H` | Enforcement Dashboard — hooks de compliance |
+| `K` | Agent Panel — tareas por herramienta |
+| `N` | Notification Center — historial de toasts |
+
+Presiona `Esc` para cerrar cualquier panel.

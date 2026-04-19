@@ -1,0 +1,25 @@
+/target
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Debug logs
+debug.log
+*.log
+
+# Secrets & credentials
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+config.local.toml
+
+# Claude Code — puede contener memoria personal con datos sensibles
+.claude/
+MEMORY.md

@@ -1,0 +1,48 @@
+---
+title: LSP Integration
+description: Integracion con Language Server Protocol para diagnosticos en contexto AI
+sidebar:
+  order: 14
+---
+
+## Que es
+
+ingenierIA TUI se integra con Language Servers via LSP (Language Server Protocol) para capturar diagnosticos del proyecto (errores de compilacion, warnings, hints) e inyectarlos automaticamente en el contexto del chat AI.
+
+## Deteccion automatica
+
+Al abrir un proyecto, el modulo de deteccion identifica el language server apropiado segun los archivos del proyecto:
+
+| Archivos detectados | Language Server |
+|---------------------|-----------------|
+| `*.csproj`, `*.sln` | OmniSharp / C# LS |
+| `tsconfig.json`, `angular.json` | TypeScript LS |
+| `Cargo.toml` | rust-analyzer |
+| `package.json` (NestJS) | TypeScript LS |
+
+## Diagnosticos en contexto AI
+
+Los diagnosticos capturados via `textDocument/publishDiagnostics` se formatean e inyectan automaticamente en el contexto del chat. Esto permite que el AI:
+
+- Conozca errores de compilacion actuales sin que el usuario los pegue manualmente
+- Sugiera fixes basados en el error exacto y el codigo circundante
+- Detecte warnings que podrian ser relevantes para la tarea actual
+
+## Validacion post-apply
+
+Cuando el AI aplica un code block (`/apply`), el TUI notifica al LSP via `didOpen`/`didChange`. Si el LSP reporta errores tras el cambio, se muestran como toast de advertencia para que el usuario los revise.
+
+## Comandos
+
+| Comando | Descripcion |
+|---------|-------------|
+| `/lsp-status` | Muestra estado del language server: conectado, PID, capabilities |
+| `/lsp-diag` | Muestra diagnosticos actuales del LSP (errores, warnings, hints) |
+
+## Transport
+
+La comunicacion con el language server usa **stdio** (stdin/stdout). El TUI maneja el protocolo JSON-RPC 2.0 para enviar requests y recibir notificaciones.
+
+:::note
+La integracion LSP requiere que el language server este instalado en el sistema. ingenierIA TUI no instala language servers automaticamente.
+:::

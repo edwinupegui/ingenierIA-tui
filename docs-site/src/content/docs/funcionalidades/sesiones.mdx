@@ -1,0 +1,94 @@
+---
+title: Sesiones y Costos
+description: Persistencia de conversaciones, metricas y tracking de costos
+sidebar:
+  order: 7
+---
+
+## Persistencia de sesiones
+
+Las conversaciones se guardan automaticamente en `~/.config/ingenieria-tui/history/`. Cada sesion incluye:
+- Mensajes completos (usuario + AI)
+- Tool calls ejecutados
+- Metadata: timestamp, token usage, factory activa, modo
+
+## Gestionar sesiones
+
+| Comando | Accion |
+|---------|--------|
+| `/history` | Ver lista de conversaciones guardadas (click en una para cargarla) |
+| `/resume` | Continuar la sesion mas reciente |
+| `/fork <label>` | Ramificar la sesion actual creando una copia independiente |
+| `/export [path]` | Exportar la sesion a formato JSONL (default: temp dir) |
+
+:::tip
+Usa `/resume` al iniciar el TUI para continuar exactamente donde dejaste la conversacion anterior.
+:::
+
+:::note[Slashes eliminados]
+`/sessions` (duplicado de `/history`) y `/load N` (reemplazado por click dentro de `/history`) fueron removidos. Ver [referencia de slash commands](/reference/slash-commands/).
+:::
+
+## Context compaction
+
+A medida que la conversacion crece, el contexto puede exceder los limites del modelo. ingenierIA TUI maneja esto con:
+
+### Compaction manual
+
+Escribe `/compact [strategy]` en el chat. Estrategias disponibles:
+
+| Estrategia | Alias | Comportamiento |
+|------------|-------|----------------|
+| `aggressive` | `a`, `agr` | Elimina mas mensajes, prioriza liberar contexto |
+| `balanced` | `b`, `bal` | Balance entre retencion y liberacion (default) |
+| `conservative` | `c`, `con` | Retiene mas contexto, elimina solo lo minimo |
+
+### Compaction automatica
+Al alcanzar el **80% del limite de contexto**, el sistema compacta automaticamente con estrategia `balanced` para evitar truncamiento.
+
+### Memory persistente
+Usa `/memory` para ver cuanto contexto se ha consumido. La memoria persistente entre sesiones se gestiona con `/remember` y `/forget` — la lectura del indice se hace via `/memory` (el antiguo `/memories` fue eliminado).
+
+## Transcripcion de sesion
+
+Presiona `Ctrl+O` para abrir el overlay de transcripcion completa. Usa `Alt+↑` / `Alt+↓` para scroll linea a linea o `PageUp` / `PageDown` para scroll por pagina.
+
+## Metricas de chat
+
+Usa `/metrics` para ver estadisticas de performance de la sesion:
+
+| Metrica | Descripcion |
+|---------|-------------|
+| **TTFT** | Time to first token — latencia hasta el primer token de respuesta |
+| **OTPS** | Output tokens per second — velocidad de generacion |
+| **Duracion por turno** | Tiempo total de cada ronda de chat |
+| **Promedios** | Aggregates de toda la sesion |
+
+## Cost tracking
+
+### Panel de costos
+
+Presiona `$` en el chat para abrir el panel de costos con:
+- Tokens de entrada/salida por cada turno
+- Tokens de cache (prompt cache hits)
+- Precio calculado segun el modelo activo
+- Acumulado de la sesion completa
+
+### Precios por modelo
+
+| Provider | Modelo | Input | Output |
+|----------|--------|-------|--------|
+| Claude API | Sonnet 4 | $3/M tokens | $15/M tokens |
+| Claude API | Haiku 4.5 | $0.80/M tokens | $4/M tokens |
+| Claude API | Opus 4 | $15/M tokens | $75/M tokens |
+| GitHub Copilot | Varios | Incluido en suscripcion | — |
+
+### Budget alerts
+
+El sistema emite alertas automaticas:
+- **80%** del presupuesto: warning (toast amarillo)
+- **100%** del presupuesto: alerta critica (toast rojo)
+
+:::caution
+Los costos se calculan localmente basados en el conteo de tokens. Los valores pueden diferir ligeramente de la facturacion real del provider.
+:::

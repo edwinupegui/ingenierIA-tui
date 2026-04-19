@@ -1,0 +1,89 @@
+---
+title: Compliance check
+description: Validacion de cumplimiento contra policies y ADRs
+sidebar:
+  order: 3
+---
+
+## Que es
+
+El compliance check valida tu proyecto contra las **policies** y **ADRs** definidos en la factory activa. Detecta violaciones a reglas de seguridad, estandares de codigo, y decisiones arquitectonicas.
+
+## Ejecutar compliance
+
+La validacion de compliance corre **automaticamente** dentro del flujo de [Planning Mode](/funcionalidades/planning-mode/). No hay comando manual en el command palette.
+
+:::caution[Cambio reciente]
+Los comandos `/compliance` y `:compliance` fueron eliminados. La validacion se ejecuta como parte del ciclo de planning/ejecucion y a traves del **Enforcement Dashboard** (`H` desde el dashboard), no como comando puntual.
+
+El servicio `validate_compliance` sigue disponible como tool MCP para que el AI lo invoque autonomamente.
+:::
+
+El servidor ejecuta `validate_compliance` contra todas las reglas de la factory activa y retorna un reporte con:
+
+- Reglas evaluadas
+- Reglas cumplidas
+- Violaciones encontradas con detalle
+
+## Integracion con Planning Mode
+
+Cuando `/plan` esta activo, la validacion de compliance es **automatica**:
+
+1. El AI genera un plan de implementacion
+2. El plan se valida contra policies y ADRs
+3. Si hay violaciones, el AI ajusta el plan o te notifica
+4. Solo puedes aprobar planes que pasan compliance
+
+Fuera de Planning Mode, las violaciones se detectan via hooks (triggers) y aparecen en el Enforcement Dashboard.
+
+## Enforcement Dashboard
+
+El panel de enforcement (`H` desde dashboard) muestra eventos de compliance en tiempo real:
+
+| Evento | Significado | Color |
+|--------|-------------|-------|
+| `hook:check` | Verificacion en progreso | Gris |
+| `hook:pass` | Regla cumplida | Verde |
+| `hook:block` | Violacion bloqueada | Rojo |
+
+Cuando un hook bloquea, muestra:
+- Nombre del hook que bloqueo
+- Factory afectada
+- Regla especifica violada
+- Timestamp del evento
+
+## Ciclo de compliance
+
+```
+Escribir codigo
+     │
+     ▼
+/plan activa validacion automatica
+     │
+     ▼
+¿Violaciones?          ◄──── hooks disparan en tiempo real
+  │        │
+  No       Si
+  │        │
+  ▼        ▼
+ OK    Corregir ── y repetir
+```
+
+## Buenas practicas
+
+:::tip
+- Usa **Planning Mode** para features que tocan areas reguladas
+- Revisa el **Enforcement Dashboard** (`H`) periodicamente
+- Usa `:doctor` para validar configuracion de hooks
+- Las policies se sincronizan automaticamente via SSE — siempre estan actualizadas
+:::
+
+## Tipos de reglas
+
+Las policies pueden cubrir:
+- **Seguridad**: autenticacion, autorizacion, manejo de secretos
+- **Codigo**: convenciones, limites de complejidad, cobertura de tests
+- **Arquitectura**: patrones obligatorios, dependencias permitidas
+- **Operaciones**: logging, monitoreo, manejo de errores
+
+Los ADRs complementan las policies documentando **decisiones arquitectonicas** que deben respetarse en toda implementacion nueva.

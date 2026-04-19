@@ -1,0 +1,19 @@
+{
+  "name": "@your-org/ingenieria-linux-x64",
+  "version": "0.23.0",
+  "description": "ingenierIA TUI — binario Linux x64 (musl, static)",
+  "license": "UNLICENSED",
+  "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "os": [
+    "linux"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "files": [
+    "bin/ingenieria"
+  ]
+}

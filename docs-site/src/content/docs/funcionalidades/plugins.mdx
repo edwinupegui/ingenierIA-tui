@@ -1,0 +1,60 @@
+---
+title: Plugins
+description: Sistema de plugins extensible con lifecycle hooks
+sidebar:
+  order: 13
+---
+
+## Que es
+
+El sistema de plugins permite extender ingenierIA TUI con funcionalidad adicional via plugins descubiertos automaticamente. Cada plugin implementa lifecycle hooks que se integran con el flujo Action-Reducer.
+
+## Descubrimiento
+
+Los plugins se descubren automaticamente desde:
+
+```
+~/.config/ingenieria-tui/plugins/*/manifest.json
+```
+
+Cada directorio de plugin debe contener un `manifest.json` con nombre, version y configuracion.
+
+## Lifecycle hooks
+
+Los plugins pueden engancharse en 4 puntos del ciclo de vida:
+
+| Hook | Momento | Capacidad |
+|------|---------|-----------|
+| `on_init` | Al iniciar la app | Retorna lista de `PluginEffect` |
+| `on_pre_action` | Antes de cada Action | Puede `Block(reason)` o `Continue` |
+| `on_post_action` | Despues de cada Action | Fire-and-forget, observacion |
+| `on_shutdown` | Al cerrar la app | Best-effort, limpieza |
+
+### on_pre_action
+
+Este hook es el mas poderoso: permite que un plugin **bloquee** una accion antes de que el reducer la procese. Util para validaciones, auditorias o restricciones personalizadas.
+
+### on_init
+
+Retorna una lista de `PluginEffect` que el sistema aplica al inicializar. Los effects permiten al plugin registrar estado inicial o emitir hints.
+
+### status_hints
+
+Los plugins pueden emitir hints de estado que se muestran en la UI, proporcionando informacion contextual al usuario.
+
+## Comandos
+
+| Comando | Descripcion |
+|---------|-------------|
+| `/plugins` | Lista plugins cargados con nombre, version y estado |
+| `/plugins reload` | Recarga todos los plugins desde el directorio de discovery |
+
+## Limites
+
+- Maximo **16 plugins** simultaneos (`MAX_PLUGINS`)
+- Los plugins no pueden mutar `AppState` directamente — solo interactuan via hooks
+- `on_shutdown` es best-effort: no se garantiza ejecucion si el proceso se mata con SIGKILL
+
+:::tip
+Usa `/plugins` para verificar que tus plugins estan cargados correctamente. Cada plugin muestra su nombre, version y si sus hooks estan activos.
+:::

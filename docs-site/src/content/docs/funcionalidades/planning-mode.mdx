@@ -1,0 +1,69 @@
+---
+title: Planning Mode
+description: Modo de planificacion con compliance gates
+sidebar:
+  order: 5
+---
+
+## Que es
+
+Planning Mode es un modo especial del chat donde el AI genera **planes estructurados** antes de ejecutar codigo. Los planes se validan contra las policies y ADRs de la factory activa.
+
+## Modos de agente
+
+El chat opera siempre en uno de tres modos, visible en la barra de estado:
+
+| Modo | Badge | Color | Comportamiento |
+|------|-------|-------|----------------|
+| **Ask** | `[? ASK]` | Amarillo | El AI pregunta antes de ejecutar herramientas o escribir archivos |
+| **Auto** | `[⚡ AUTO]` | Verde | El AI ejecuta herramientas sin confirmacion (equivalente a modo Permissive) |
+| **Plan** | `[◈ PLAN]` | Azul | El AI genera un plan estructurado antes de cualquier implementacion |
+
+Presiona `⇧Tab` para ciclar entre los tres modos: **Ask → Auto → Plan → Ask…**
+
+:::tip
+En el modal de aprobacion de tools, `⇧Tab` cambia directamente a modo **AUTO** — util para aprobar en bloque toda una sesion sin interrupciones.
+:::
+
+## Activacion de Planning Mode
+
+- Presiona `⇧Tab` hasta llegar al modo **Plan**, o
+- Escribe `/plan` en el chat para ir directamente a ese modo
+
+Cuando esta activo, veras el badge `[◈ PLAN]` (azul) en la barra de estado del chat.
+
+## Como funciona
+
+1. **Solicitas una tarea** — "Implementar autenticacion JWT"
+2. **El AI genera un plan** — pasos estructurados con archivos a modificar, dependencias, y consideraciones
+3. **Validacion de compliance** — el plan se verifica automaticamente contra policies y ADRs
+4. **Tu decides** — Approve, Edit, o Reject el plan
+5. **Ejecucion** — si apruebas, el AI procede con la implementacion siguiendo el plan
+
+## Ciclo de aprobacion
+
+| Accion | Resultado |
+|--------|-----------|
+| **Approve** | El AI ejecuta el plan paso a paso |
+| **Edit** | Puedes modificar el plan antes de aprobar |
+| **Reject** | Se descarta el plan y puedes dar nuevas instrucciones |
+
+## Compliance gates
+
+Los planes se validan contra:
+- **Policies** de la factory (reglas de seguridad, estandares de codigo, etc.)
+- **ADRs** vigentes (decisiones arquitectonicas que deben respetarse)
+
+Si el plan viola alguna regla, el AI lo ajusta automaticamente o te notifica la violacion.
+
+## Cuando usar Planning Mode
+
+:::tip
+Planning Mode es especialmente util para:
+- Features complejas que tocan multiples archivos
+- Migraciones que deben respetar ADRs
+- Tareas en areas reguladas por policies de seguridad
+- Cuando necesitas alineacion con el equipo antes de implementar
+:::
+
+Para tareas simples (fixes puntuales, preguntas, consultas), el modo normal es mas eficiente.

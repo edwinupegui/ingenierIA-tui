@@ -1,0 +1,57 @@
+---
+title: IDE Bridge y VS Code
+description: Integracion bidireccional con editores via HTTP bridge
+sidebar:
+  order: 12
+---
+
+## Que es
+
+El IDE Bridge es un servidor HTTP local que permite que editores de codigo interactuen con el TUI. Soporta sincronizacion de contexto, aprobacion remota de tools y apertura de archivos. Esta habilitado con el feature flag `ide`.
+
+## Bridge Server (lado TUI)
+
+El bridge corre un servidor Axum en el puerto **19542** (configurable). Expone los siguientes endpoints:
+
+| Endpoint | Metodo | Descripcion |
+|----------|--------|-------------|
+| `/api/status` | GET | Estado actual: screen activa, focus, version |
+| `/api/context` | POST | IDE envia contexto: archivo activo, seleccion, output de terminal |
+| `/api/tool_approval` | POST | IDE aprueba o deniega un tool pendiente por ID |
+| `/api/pending_approvals` | GET | Lista tools que esperan aprobacion del usuario |
+
+### Verificar estado
+
+Usa `/bridge-status` en el chat para ver si el bridge esta activo, el puerto y conexiones recientes.
+
+## VS Code Extension
+
+La extension se encuentra en `vscode-ext/` y se conecta automaticamente al bridge al activarse.
+
+### Componentes
+
+| Componente | Funcion |
+|------------|---------|
+| Status bar | Muestra version del TUI, screen activa y conteo de approvals pendientes |
+| Tool approval | Notificaciones de VS Code con botones Approve/Deny para tools pendientes |
+| URI handler | Maneja URIs `vscode://ingenieria/open?path=...&line=N` para abrir archivos |
+
+### Comandos VS Code
+
+| Comando | Accion |
+|---------|--------|
+| `ingenieria.connect` | Conectar al bridge manualmente |
+| `ingenieria.disconnect` | Desconectar del bridge |
+| `ingenieria.sendContext` | Enviar contexto del editor activo al TUI |
+
+### Configuracion
+
+| Setting | Default | Descripcion |
+|---------|---------|-------------|
+| `ingenieria.bridge.port` | `19542` | Puerto del bridge server |
+| `ingenieria.bridge.autoConnect` | `true` | Conectar automaticamente al iniciar |
+| `ingenieria.bridge.pollIntervalMs` | `3000` | Intervalo de polling para pending approvals |
+
+:::note
+El IDE Bridge requiere el feature flag `ide` al compilar. El build `full` (default via npm) lo incluye. El build `minimal` no.
+:::

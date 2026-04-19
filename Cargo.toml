@@ -1,0 +1,69 @@
+[workspace]
+members = [".", "crates/ingenieria-domain", "crates/ingenieria-ui", "crates/ingenieria-api", "crates/ingenieria-runtime", "crates/ingenieria-tools"]
+
+[workspace.package]
+version = "0.23.0"
+edition = "2021"
+
+[package]
+name        = "ingenierIA-tui"
+version.workspace = true
+edition.workspace = true
+description = "Terminal UI for ingenierIA MCP Server"
+
+[[bin]]
+name = "ingenierIA"
+path = "src/main.rs"
+
+[dependencies]
+ingenieria-domain = { path = "crates/ingenieria-domain" }
+ingenieria-ui     = { path = "crates/ingenieria-ui" }
+ingenieria-api     = { path = "crates/ingenieria-api" }
+ingenieria-runtime = { path = "crates/ingenieria-runtime" }
+ingenieria-tools   = { path = "crates/ingenieria-tools" }
+ratatui            = "0.30"
+crossterm          = { version = "0.29", features = ["event-stream"] }
+tui-big-text       = "0.8"
+tokio              = { version = "1", features = ["full"] }
+reqwest            = { version = "0.13", default-features = false, features = ["json", "query", "stream", "rustls"] }
+serde              = { version = "1", features = ["derive"] }
+serde_json         = "1"
+futures-util       = "0.3"
+anyhow             = "1"
+async-trait        = "0.1"
+bytes              = "1"
+clap               = { version = "4", features = ["derive"] }
+nucleo-matcher     = "0.3"
+pulldown-cmark     = { version = "0.13", default-features = false }
+dirs               = "6"
+arboard            = "3"
+thiserror          = "2"
+glob               = "0.3"
+strsim             = "0.11"
+tracing            = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+unicode-width      = "0.2"
+unicode-segmentation = "1"
+tokio-tungstenite  = { version = "0.24", features = ["rustls-tls-native-roots"] }
+notify             = { version = "7", default-features = false, features = ["macos_kqueue"] }
+cron               = "0.16"
+chrono             = { version = "0.4", default-features = false, features = ["clock", "serde"] }
+axum               = { version = "0.8", optional = true }
+syntect            = { version = "5", default-features = false, features = ["default-fancy"] }
+
+[dev-dependencies]
+tempfile = "3"
+
+[features]
+default   = ["full"]
+full      = ["copilot", "mcp", "autoskill", "ide"]
+minimal   = []                          # Core TUI + Claude only
+copilot   = []                          # GitHub Copilot OAuth + provider
+mcp       = []                          # MCP tool discovery + execution
+autoskill = []                          # Tech detection + skill installer
+ide       = ["dep:axum"]                # IDE Bridge HTTP server (E27)
+
+[profile.release]
+opt-level = 3
+lto       = true
+strip     = true

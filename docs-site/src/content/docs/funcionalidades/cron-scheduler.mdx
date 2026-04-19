@@ -1,0 +1,52 @@
+---
+title: Cron Scheduler
+description: Programacion de tareas recurrentes con expresiones cron
+sidebar:
+  order: 10
+---
+
+## Que es
+
+El cron scheduler permite programar tareas que se ejecutan automaticamente en intervalos definidos por expresiones cron. Los jobs se persisten en disco y sobreviven reinicios del TUI.
+
+## Comandos
+
+| Comando | Descripcion |
+|---------|-------------|
+| `/cron-add <expr> <accion>` | Programa un nuevo job cron |
+| `/cron-list` | Lista todos los jobs programados con su proxima ejecucion |
+| `/cron-remove <id>` | Elimina un job por su ID |
+
+## Expresiones cron
+
+El scheduler usa el formato extendido de 6-7 campos (incluye segundos):
+
+```
+sec  min  hora  dia  mes  dia_semana  [ano]
+ 0   */5    *    *    *       *
+```
+
+### Ejemplos
+
+| Expresion | Significado |
+|-----------|-------------|
+| `0 */5 * * * *` | Cada 5 minutos |
+| `0 0 9 * * Mon-Fri` | Lunes a viernes a las 9am |
+| `0 30 * * * *` | Cada hora al minuto 30 |
+| `0 0 */2 * * *` | Cada 2 horas |
+
+## Persistencia
+
+Los jobs se guardan en `~/.config/ingenieria-tui/crons.json` en formato JSONL. Cada entrada registra:
+- ID unico del job
+- Expresion cron
+- Accion a ejecutar
+- Timestamp de la ultima ejecucion (`last_fired_at`)
+
+## Worker
+
+El cron worker evalua las expresiones cada **30 segundos** (`CRON_TICK_SECS`). Usa `last_fired_at` para evitar ejecuciones duplicadas si el tick cae dentro del mismo minuto.
+
+:::tip
+Usa `/cron-list` para verificar la proxima fecha de ejecucion de cada job. Todos los timestamps se muestran en hora local.
+:::

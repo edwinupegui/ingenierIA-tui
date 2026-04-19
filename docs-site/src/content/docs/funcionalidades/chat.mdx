@@ -1,0 +1,117 @@
+---
+title: Chat AI
+description: Conversacion con AI usando contexto de ingenierIA
+sidebar:
+  order: 2
+---
+
+## Providers de AI
+
+ingenierIA TUI soporta tres providers:
+
+### GitHub Copilot
+- Autenticacion via **OAuth device flow** (abre navegador)
+- Modelos cargados dinamicamente desde la API de Copilot
+- Configuracion: `provider: "github-copilot"`
+
+### Claude API
+- Autenticacion con **API key** de Anthropic
+- Modelos: Sonnet 4, Haiku 4.5, Opus 4
+- Configuracion: `provider: "claude-api"`
+
+### Mock Provider
+- Provider de testing para uso **offline** sin conexion a API
+- 5 escenarios deterministas: SimpleResponse, StreamingResponse, ToolCall, StreamingError, MultiTurn
+- Activar via CLI: `ingenierIA --mock` o env var `INGENIERIA_MOCK_SCENARIO=streaming`
+
+## Enviar mensajes
+
+| Tecla | Accion |
+|-------|--------|
+| `Enter` | Enviar mensaje |
+| `Shift+Enter` | Nueva linea (multilinea) |
+| `Alt+Enter` / `Ctrl+Enter` | Nueva linea (alternativa) |
+| `↑` / `↓` | Navegar historial de inputs previos |
+| `Ctrl+Z` | Deshacer ultimo cambio en el input |
+| `Ctrl+Y` | Rehacer cambio deshecho |
+| `Ctrl+R` | Busqueda reversa en historial de inputs |
+
+Las respuestas llegan en **streaming** con renderizado markdown progresivo, incluyendo syntax highlighting para bloques de codigo.
+
+## Contexto automatico
+
+Al enviar un mensaje, el TUI inyecta automaticamente el contexto de la factory activa:
+- Skills relevantes
+- Policies aplicables
+- Workflows disponibles
+- ADRs del proyecto
+- Diagnosticos LSP (errores de compilacion, warnings)
+- Git diff y archivos recientes (si se inyectaron)
+
+:::note
+El contexto se obtiene del servidor MCP via `get_factory_context`. Esto permite que el AI tenga conocimiento completo de las reglas y capacidades de tu factory.
+:::
+
+## Slash commands
+
+Dentro del chat, puedes usar comandos con `/`. Hay **42 comandos** exclusivos del chat, organizados en 12 buckets (sesion, contexto AI, plan, output, agents, teams, monitor, todos, memoria, workflows, cron, meta). Escribe `/` para ver el autocompletado.
+
+Consulta la [referencia completa de slash commands](/reference/slash-commands/) para la lista detallada.
+
+:::tip[`/` vs `:`]
+`/` opera solo sobre el chat. Para configuracion, diagnostico, cambio de theme/model, exploradores o instalacion de skills usa `:` (shift + :) — ver [Command Palette](/funcionalidades/command-palette/).
+:::
+
+### Comandos mas usados
+
+| Comando | Descripcion |
+|---------|-------------|
+| `/help` | Lista todos los comandos |
+| `/plan` | Modo planning |
+| `/compact` | Liberar contexto |
+| `/diff` | Inyectar git diff |
+| `/spawn` | Lanzar subagente |
+| `/todos` | Lista de tareas |
+
+## Autocomplete de slash commands
+
+Al escribir `/` en el input del chat, aparece un popup con los comandos que coinciden con lo que estas escribiendo. Cada entrada muestra nombre y descripcion. Navega con `↑`/`↓` y confirma con `Enter` o `Tab`.
+
+## Busqueda de historial
+
+Presiona `Ctrl+R` para abrir el modal de busqueda reversa sobre inputs anteriores. Funciona como en un shell: escribe para filtrar, `↑`/`↓` para navegar entre coincidencias, `Enter` para seleccionar y `Esc` para cancelar.
+
+## Elicitation modals
+
+Cuando un tool MCP necesita informacion adicional del usuario, aparece un modal de elicitation. Esto permite que las herramientas soliciten inputs interactivos (confirmaciones, selecciones, texto libre) sin interrumpir el flujo del chat.
+
+## Code blocks
+
+Los bloques de codigo en las respuestas del AI se detectan automaticamente. Puedes:
+
+1. Usar `/blocks` para listar todos los bloques detectados
+2. Usar `/apply N` para aplicar un bloque especifico a su archivo destino
+
+Los bloques soportan syntax highlighting para Rust, TypeScript, C# y otros lenguajes.
+
+## Diff visual
+
+Los diffs mostrados en el chat incluyen:
+- Renderizado **linea por linea** con numeros de linea
+- Highlighting a nivel de **palabra** para cambios intra-linea
+- **Syntax highlighting** del lenguaje del archivo (via syntect)
+
+## Transcripcion de sesion
+
+Presiona `Ctrl+O` para abrir el overlay de transcripcion completa de la sesion. Dentro del overlay:
+- `Ctrl+F` para buscar texto
+- `↑`/`↓` para scroll
+- `Esc` para cerrar
+
+## Virtual scroll
+
+Para conversaciones largas, el chat usa virtual scrolling: solo renderiza los mensajes visibles en pantalla, manteniendo performance constante sin importar la cantidad de mensajes.
+
+## Historial de inputs
+
+El chat guarda tus inputs previos. Usa las flechas `↑` y `↓` para navegar entre mensajes anteriores, similar a como funciona el historial de un shell.

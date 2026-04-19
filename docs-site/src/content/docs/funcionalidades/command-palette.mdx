@@ -1,0 +1,117 @@
+---
+title: Command Palette
+description: 26 comandos de configuracion, diagnostico y navegacion accesibles desde cualquier pantalla con ":"
+sidebar:
+  order: 3
+---
+
+## Activacion
+
+Presiona `:` (shift + :) desde **cualquier pantalla** (Splash, Dashboard, Chat) para abrir la paleta. Escribe para filtrar con busqueda fuzzy en tiempo real.
+
+| Tecla | Accion |
+|-------|--------|
+| `:` | Abrir paleta |
+| _(escribir)_ | Filtrar comandos |
+| `↑` / `↓` | Navegar resultados |
+| `Enter` | Ejecutar comando |
+| `Esc` | Cerrar paleta |
+
+:::tip[Separacion estricta]
+La paleta es **solo para configuracion, diagnostico y navegacion**. Cualquier accion sobre el chat (turnos, contexto AI, agents, todos, memoria) vive bajo `/` como [slash command](/reference/slash-commands/).
+:::
+
+:::tip[Navegacion por URI]
+Al pegar una URI `ingenieria://type/factory/name` directamente en la paleta, se navega automaticamente al documento sin necesidad de un comando separado.
+:::
+
+## Los 26 comandos
+
+### Sincronizacion (1)
+
+| Comando | Descripcion |
+|---------|-------------|
+| `sync` | Descarga documentos de todas las factories |
+
+### Estado / Diagnostico (4)
+
+| Comando | Descripcion |
+|---------|-------------|
+| `health` | Consulta `/api/health` y muestra estado del servidor MCP |
+| `doctor` | Diagnostico completo: MCP, LSP, IDE bridge, features y disco |
+| `mcp-status` | Info del servidor MCP, transporte y tools descubiertos |
+| `audit` | Lista el audit log de tools y fallos |
+
+:::note[`doctor` absorbe]
+El comando `doctor` reemplazo a `/lsp-status`, `/lsp-diag`, `/bridge-status`, `/features`, y parte de `/mcp-status` en una sola vista consolidada.
+:::
+
+### Contexto de ingenierIA (1)
+
+| Comando | Descripcion |
+|---------|-------------|
+| `context` | Cicla la factory activa (Net → Ang → Nest → All) y recarga docs |
+
+### Navegacion (4)
+
+| Comando | Descripcion |
+|---------|-------------|
+| `search` | Busqueda fuzzy sobre todos los documentos cargados |
+| `dashboard` | Abre el dashboard |
+| `home` | Vuelve al splash |
+| `transcript` | Abre/cierra el transcript overlay del chat |
+
+### Exploradores (6)
+
+| Comando | Descripcion |
+|---------|-------------|
+| `skills` | Explorador de skills de ingenierIA activa |
+| `commands` | Explorador de commands |
+| `adrs` | Explorador de ADRs (Architecture Decision Records) |
+| `policies` | Explorador de policies de cumplimiento |
+| `agents` | Explorador de agents configurados |
+| `workflows` | Explorador de workflows |
+
+### Configuracion (8)
+
+| Comando | Descripcion |
+|---------|-------------|
+| `config` | Wizard para configurar servidor, provider y modelo AI |
+| `init` | Crea `.ingenieria.json` para vincular el proyecto |
+| `disconnect` | Elimina token del provider AI actual y reabre el wizard |
+| `model` | Abre el **ModelPicker** (cambia modelo sin reconectar) |
+| `permissions` | Cicla el modo (Standard → Permissive → Strict) |
+| `theme` | Abre el **ThemePicker** (6 variantes) |
+| `plugins` | Lista plugins cargados |
+| `plugins-reload` | Recarga plugins desde disco |
+
+### Instalacion de stack (1)
+
+| Comando | Descripcion |
+|---------|-------------|
+| `autoskill` | Escanea el stack y abre el **AutoskillPicker** (modal con checkboxes) |
+
+Ver [AutoSkill](/funcionalidades/autoskill/).
+
+### Historial de input (1)
+
+| Comando | Descripcion |
+|---------|-------------|
+| `history-search` | Busca en el historial de inputs anteriores del prompt |
+
+## Comandos retirados
+
+| Comando antiguo | Estado |
+|-----------------|--------|
+| `sessions`, `resume`, `diff`, `files`, `clear`, `history` | Duplicados con `/` — eliminados del palette, viven solo como slash |
+| `reset-config` | Absorbido por el wizard de `config` (accion "Reset desde cero") |
+| `change-model` | Renombrado a `model`, ahora abre el ModelPicker |
+| `compliance` | Eliminado; la validacion corre automaticamente en Planning Mode |
+
+## Navegacion automatica
+
+Los comandos saltan a la pantalla correcta sin intervencion:
+
+- Comandos de **sincronizacion, contexto, busqueda, exploradores** llevan al Dashboard
+- Comandos de **transcript** llevan al Chat
+- Pickers (`theme`, `model`, `autoskill`) se abren como overlay sobre la pantalla actual

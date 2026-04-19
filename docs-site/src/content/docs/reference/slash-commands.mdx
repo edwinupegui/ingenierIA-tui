@@ -1,0 +1,163 @@
+---
+title: Slash Commands
+description: 42 slash commands exclusivos del chat (sesion, contexto AI, agents, todos, memoria)
+sidebar:
+  order: 2
+---
+
+Los slash commands se escriben en el input del chat con `/`. Son **exclusivos del chat** — cualquier accion de configuracion, diagnostico o navegacion vive en el [command palette](/funcionalidades/command-palette/) bajo `:` (shift + :).
+
+:::note[Separacion estricta `/` vs `:`]
+- **`/`** — solo opera sobre el turno actual, historial de chat, contexto AI, agents, todos y memoria persistente.
+- **`:`** — configuracion, diagnostico, navegacion, exploradores y modales (theme, model, autoskill).
+
+Si un slash no aparece aqui, probablemente migro a `:`. El chat responde con hint de migracion.
+:::
+
+## Sesion (10)
+
+| Comando | Descripcion |
+|---------|-------------|
+| `/clear` | Limpia el historial del chat y reinicia la conversacion desde cero |
+| `/exit` | Cierra el chat y vuelve a la pantalla inicial de ingenierIA |
+| `/resume` | Retoma la ultima sesion de chat exactamente donde la dejaste |
+| `/history` | Muestra las sesiones guardadas para retomar |
+| `/fork <label>` | Ramifica la sesion actual con un label para explorar otro camino |
+| `/export [path]` | Exporta la sesion actual como archivo JSONL compartible |
+| `/compact [strategy]` | Compacta mensajes anteriores para liberar contexto. Estrategias: `aggressive` (a), `balanced` (b, default), `conservative` (c) |
+| `/undo` | Deshace el ultimo turn (pop user + assistant, restaura draft) |
+| `/redo` | Rehace el ultimo `/undo` (solo si no enviaste un nuevo mensaje) |
+| `/continue` | Reintenta el ultimo turno del AI sin enviar un nuevo prompt |
+
+## Contexto AI (5)
+
+| Comando | Descripcion |
+|---------|-------------|
+| `/diff` | Inyecta el git diff actual como contexto para la AI |
+| `/files` | Inyecta archivos modificados recientemente como contexto |
+| `/memory` | Muestra cuanto contexto se ha consumido y cuanto queda disponible |
+| `/costs` | Tokens consumidos, costos estimados y modelo activo |
+| `/metrics` | Performance: TTFT, OTPS y duracion por turno |
+
+## Modo chat (1)
+
+| Comando | Descripcion |
+|---------|-------------|
+| `/plan` | Activa o desactiva el modo planning (AI propone antes de ejecutar) |
+
+## Output del AI (2)
+
+| Comando | Descripcion |
+|---------|-------------|
+| `/blocks` | Lista todos los bloques de codigo detectados en la conversacion |
+| `/apply [n]` | Aplica un code block al archivo destino |
+
+## Agents (3)
+
+| Comando | Descripcion |
+|---------|-------------|
+| `/spawn <rol> <prompt>` | Lanza un subagente aislado |
+| `/agent-list` | Lista subagentes activos con su estado y rol |
+| `/agent-cancel <id>` | Cancela un subagente por su ID |
+
+Roles: `Discovery`, `Architecture`, `Execution`, `Testing`, `Planning`, `Docs`. Ver [Multi-Agent](/funcionalidades/multi-agent/).
+
+## Teams (4)
+
+| Comando | Descripcion |
+|---------|-------------|
+| `/team-start <template> <goal>` | Lanza un team de subagentes con template |
+| `/team-list` | Tabla de teams activos y recientes |
+| `/team-cancel <id>` | Cancela todos los miembros de un team |
+| `/team-mail <id>` | Muestra el mailbox del team |
+
+Templates: `FullStack`, `Research`, `PlanExec`, `DocsResearch`.
+
+## Process Monitor (4)
+
+| Comando | Descripcion |
+|---------|-------------|
+| `/monitor <command>` | Lanza un proceso en background |
+| `/monitor-list` | Lista procesos monitoreados con exit code |
+| `/monitor-kill <id>` | Mata un monitor activo |
+| `/monitor-show <id>` | Ultimas lineas del output del monitor |
+
+Ver [Process Monitor](/funcionalidades/process-monitor/).
+
+## Todos (6)
+
+| Comando | Descripcion |
+|---------|-------------|
+| `/todos` | Muestra la lista de todos de la sesion |
+| `/todo-add <titulo>` | Agrega un todo |
+| `/todo-start <id>` | Marca como en progreso |
+| `/todo-done <id>` | Marca como completado |
+| `/todo-remove <id>` | Elimina un todo |
+| `/todo-clear` | Vacia la lista de todos |
+
+## Memoria persistente (2)
+
+| Comando | Descripcion |
+|---------|-------------|
+| `/remember <type> <file>: <body>` | Guarda memoria (tipos: user, feedback, project, reference) |
+| `/forget <file>` | Elimina memoria por nombre de archivo |
+
+## Workflows (1)
+
+| Comando | Descripcion |
+|---------|-------------|
+| `/workflow <nombre>` | Carga un workflow ingenierIA por nombre |
+
+## Cron (3)
+
+Requieren argumentos inline; no pueden vivir en el palette (que no prompt-ea).
+
+| Comando | Descripcion |
+|---------|-------------|
+| `/cron-add <notify\|spawn> "<expr>" <args>` | Agrega un cron job |
+| `/cron-list` | Lista jobs con su proxima ejecucion |
+| `/cron-remove <id>` | Elimina un cron por ID |
+
+Ver [Cron Scheduler](/funcionalidades/cron-scheduler/).
+
+## Meta (1)
+
+| Comando | Descripcion |
+|---------|-------------|
+| `/help` | Lista de comandos agrupados con pie que apunta a `:` para config |
+
+## Migracion desde slashes antiguos
+
+Los siguientes slashes fueron **eliminados** o **movidos a `:` palette**. Si escribes uno, el chat responde con hint de redireccion:
+
+| Slash antiguo | Nuevo acceso |
+|---------------|--------------|
+| `/theme` | `:theme` → abre ThemePicker (6 variantes) |
+| `/model` / `/change-model` | `:model` → abre ModelPicker |
+| `/autoskill` | `:autoskill` → abre modal con checkboxes |
+| `/install-skills` | absorbido por el modal de `:autoskill` |
+| `/doctor` | `:doctor` (absorbe lsp-status, lsp-diag, bridge-status, features, mcp-detail) |
+| `/mcp-status` | `:mcp-status` |
+| `/audit` | `:audit` |
+| `/skills` / `/commands` / `/adrs` / `/policies` / `/agents` / `/workflows` | `:<id>` en exploradores |
+| `/permissions` | `:permissions` (cicla Standard → Permissive → Strict) |
+| `/hooks`, `/features`, `/lsp-*`, `/bridge-status` | absorbidos por `:doctor` |
+| `/compliance`, `/install-skills`, `/go`, `/fork-from`, `/load`, `/memories`, `/brief`, `/sessions`, `/retry`, `/todo-check` | eliminados (redundantes o no usados) |
+
+## Autocomplete
+
+Al escribir `/` en el input del chat, aparece un popup con los 42 comandos que coinciden con lo que estas tecleando. Cada entrada muestra nombre y descripcion. Navega con `↑`/`↓` y confirma con `Enter` o `Tab`.
+
+## Select-then-type (workflows)
+
+Al seleccionar un workflow:
+
+1. El nombre se inserta como prefijo en el input (ej: `/add-feature `)
+2. El prefijo se muestra en **cyan bold**
+3. Escribes tu peticion y `Enter` la envia con el workflow cargado
+
+```
+/add-feature crear endpoint de pagos con validacion
+```
+
+Si presionas Enter sin argumento, el workflow queda cargado esperando tu input. Al borrar el prefijo, el workflow se limpia automaticamente.

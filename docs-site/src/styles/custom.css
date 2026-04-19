@@ -1,0 +1,368 @@
+/* ingenierIA TUI — Custom Starlight Theme */
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap");
+
+:root {
+    --sl-font: "JetBrains Mono", ui-monospace, monospace;
+    --sl-font-mono: "JetBrains Mono", ui-monospace, monospace;
+    --factory-net: #68217a;
+    --factory-ang: #c82333;
+    --factory-nest: #48bb78;
+    --factory-all: #4a9eff;
+}
+
+/* Dark theme */
+:root[data-theme="dark"] {
+    --sl-color-accent-low: #1a1040;
+    --sl-color-accent: #68217a;
+    --sl-color-accent-high: #c490d1;
+    --sl-color-white: #dce1f0;
+    --sl-color-gray-1: #c0c7db;
+    --sl-color-gray-2: #8e96ad;
+    --sl-color-gray-3: #545d78;
+    --sl-color-gray-4: #323c5a;
+    --sl-color-gray-5: #1a1f35;
+    --sl-color-gray-6: #121624;
+    --sl-color-black: #0d1017;
+    --sl-color-bg: #121624;
+    --sl-color-bg-nav: #0d1017;
+    --sl-color-bg-sidebar: #0f1320;
+    --sl-color-hairline-shade: #323c5a;
+    --sl-color-hairline-light: #1e2540;
+}
+
+/* Light theme */
+:root[data-theme="light"] {
+    --sl-color-accent-low: #f0e6f3;
+    --sl-color-accent: #68217a;
+    --sl-color-accent-high: #4a1559;
+    --sl-color-white: #1a1040;
+    --sl-color-gray-1: #2e2650;
+    --sl-color-gray-2: #545d78;
+    --sl-color-gray-3: #8e96ad;
+    --sl-color-gray-4: #c0c7db;
+    --sl-color-gray-5: #e8ebf2;
+    --sl-color-gray-6: #f4f5f9;
+    --sl-color-black: #ffffff;
+    --sl-color-bg: #ffffff;
+    --sl-color-bg-nav: #f4f5f9;
+    --sl-color-bg-sidebar: #f8f9fc;
+    --sl-color-hairline-shade: #d0d5e3;
+    --sl-color-hairline-light: #e8ebf2;
+}
+
+/* Code blocks */
+pre {
+    background: var(--sl-color-black) !important;
+    border: 1px solid var(--sl-color-gray-4);
+    border-radius: 6px;
+}
+
+code {
+    font-family: var(--sl-font-mono);
+    font-size: 0.9em;
+}
+
+/* Sidebar styles */
+nav.sidebar .top-level > li > details > summary,
+nav.sidebar .top-level > li > a {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+}
+
+/* Hide default Starlight page title on splash landing (page with hero-container) */
+main:has(.hero-container) > .content-panel:first-child {
+    display: none;
+}
+
+/* Hero section on landing */
+.hero-container {
+    text-align: center;
+    padding: 4rem 1rem;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.hero-title {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--sl-color-white);
+    margin-bottom: 0.5rem;
+    line-height: 1.1;
+}
+
+.hero-subtitle {
+    font-size: 1.2rem;
+    color: var(--sl-color-gray-2);
+    margin-bottom: 2rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.hero-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 3rem;
+}
+
+.hero-actions a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 600;
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+}
+
+.hero-actions .primary {
+    background: var(--sl-color-accent);
+    color: #fff;
+}
+
+.hero-actions .primary:hover {
+    filter: brightness(1.2);
+}
+
+.hero-actions .secondary {
+    border: 1px solid var(--sl-color-gray-4);
+    color: var(--sl-color-white);
+}
+
+.hero-actions .secondary:hover {
+    border-color: var(--sl-color-gray-3);
+    background: var(--sl-color-gray-6);
+}
+
+/* Terminal mockup */
+.terminal-mockup {
+    background: var(--sl-color-black);
+    border: 1px solid var(--sl-color-gray-4);
+    border-radius: 8px;
+    padding: 0;
+    margin: 2rem auto;
+    max-width: 780px;
+    text-align: left;
+    overflow: hidden;
+}
+
+.terminal-titlebar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 14px;
+    background: var(--sl-color-gray-5);
+    border-bottom: 1px solid var(--sl-color-gray-4);
+}
+
+.terminal-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.terminal-dot.red {
+    background: #c82333;
+}
+.terminal-dot.yellow {
+    background: #e6a817;
+}
+.terminal-dot.green {
+    background: #48bb78;
+}
+
+.terminal-title {
+    flex: 1;
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--sl-color-gray-3);
+}
+
+.terminal-body {
+    padding: 1rem 1.25rem;
+    font-family: var(--sl-font-mono);
+    font-size: 0.8rem;
+    line-height: 1.6;
+    color: var(--sl-color-gray-2);
+}
+
+.terminal-body .prompt {
+    color: var(--factory-nest);
+}
+
+.terminal-body .cmd {
+    color: var(--sl-color-white);
+}
+
+.terminal-body .comment {
+    color: var(--sl-color-gray-3);
+}
+
+.terminal-body .highlight-net {
+    color: var(--factory-net);
+}
+
+.terminal-body .highlight-ang {
+    color: var(--factory-ang);
+}
+
+.terminal-body .highlight-nest {
+    color: var(--factory-nest);
+}
+
+.terminal-body .highlight-all {
+    color: var(--factory-all);
+}
+
+/* Features grid */
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    padding: 2rem 0;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.feature-card {
+    background: var(--sl-color-gray-5);
+    border: 1px solid var(--sl-color-gray-4);
+    border-radius: 8px;
+    padding: 1.5rem;
+    transition: border-color 0.2s;
+}
+
+.feature-card:hover {
+    border-color: var(--sl-color-gray-3);
+}
+
+.feature-card h3 {
+    font-size: 1rem;
+    color: var(--sl-color-white);
+    margin: 0 0 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.feature-card p {
+    font-size: 0.85rem;
+    color: var(--sl-color-gray-2);
+    margin: 0;
+    line-height: 1.5;
+}
+
+.feature-icon {
+    font-size: 1.3rem;
+}
+
+/* Section headers */
+.section-header {
+    text-align: center;
+    margin: 3rem 0 1.5rem;
+}
+
+.section-header h2 {
+    font-size: 1.5rem;
+    color: var(--sl-color-white);
+    margin-bottom: 0.5rem;
+}
+
+.section-header p {
+    color: var(--sl-color-gray-2);
+    font-size: 0.9rem;
+}
+
+/* Architecture diagram */
+.arch-diagram {
+    background: var(--sl-color-black);
+    border: 1px solid var(--sl-color-gray-4);
+    border-radius: 8px;
+    padding: 1.5rem;
+    max-width: 780px;
+    margin: 1.5rem auto;
+    font-family: var(--sl-font-mono);
+    font-size: 0.75rem;
+    line-height: 1.8;
+    color: var(--sl-color-gray-2);
+    text-align: center;
+    white-space: pre;
+    overflow-x: auto;
+}
+
+/* Factory cards */
+.factories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.25rem;
+    max-width: 900px;
+    margin: 1.5rem auto;
+}
+
+.factory-card {
+    background: var(--sl-color-gray-5);
+    border-radius: 8px;
+    padding: 1.25rem;
+    border-left: 3px solid;
+}
+
+.factory-card.net {
+    border-color: var(--factory-net);
+}
+.factory-card.ang {
+    border-color: var(--factory-ang);
+}
+.factory-card.nest {
+    border-color: var(--factory-nest);
+}
+
+.factory-card h3 {
+    font-size: 0.95rem;
+    margin: 0 0 0.4rem;
+    color: var(--sl-color-white);
+}
+
+.factory-card p {
+    font-size: 0.8rem;
+    color: var(--sl-color-gray-2);
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* Quick start */
+.quick-start {
+    max-width: 600px;
+    margin: 1.5rem auto;
+}
+
+/* Keybinding tables */
+.keybinding-table kbd {
+    background: var(--sl-color-gray-5);
+    border: 1px solid var(--sl-color-gray-4);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-family: var(--sl-font-mono);
+    font-size: 0.8rem;
+    color: var(--sl-color-white);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .hero-title {
+        font-size: 2rem;
+    }
+
+    .features-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .factories-grid {
+        grid-template-columns: 1fr;
+    }
+}

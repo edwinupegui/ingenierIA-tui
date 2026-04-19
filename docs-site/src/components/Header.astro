@@ -1,0 +1,41 @@
+---
+import type { Props } from "@astrojs/starlight/props";
+import Default from "@astrojs/starlight/components/Header.astro";
+import FactorySwitcher from "./FactorySwitcher.astro";
+---
+
+<div class="header-with-factory">
+    <Default {...Astro.props}><slot /></Default>
+    <div class="factory-switcher-slot">
+        <FactorySwitcher />
+    </div>
+</div>
+
+<style>
+    .header-with-factory {
+        display: contents;
+    }
+
+    .factory-switcher-slot {
+        position: fixed;
+        top: 12px;
+        right: 200px;
+        z-index: 10;
+    }
+
+    @media (max-width: 1024px) {
+        .factory-switcher-slot {
+            right: 120px;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .factory-switcher-slot {
+            position: static;
+            display: flex;
+            justify-content: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--sl-color-gray-4);
+        }
+    }
+</style>

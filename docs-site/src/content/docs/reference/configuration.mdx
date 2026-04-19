@@ -1,0 +1,112 @@
+---
+title: Configuracion
+description: Archivos de configuracion y orden de resolucion
+sidebar:
+  order: 3
+---
+
+## Orden de resolucion
+
+La configuracion se resuelve con la siguiente prioridad (de mayor a menor):
+
+1. **Argumentos CLI** — `--server-url http://example.com:3001`
+2. **Variables de entorno** — `INGENIERIA_SERVER_URL`, etc.
+3. **`.mcp.json` local** — busca hacia arriba desde el directorio actual
+4. **Config global** — `~/.config/ingenieria-tui/config.json`
+5. **Valores por defecto** — `http://localhost:3001`
+
+## Variables de entorno
+
+| Variable | Descripcion | Ejemplo |
+|----------|-------------|---------|
+| `INGENIERIA_SERVER_URL` | URL del servidor MCP | `http://localhost:3001` |
+| `INGENIERIA_DEVELOPER` | Identidad del desarrollador | `edwin` |
+| `INGENIERIA_MODEL` | Identificador del modelo AI | `claude-sonnet-4-20250514` |
+| `INGENIERIA_PROVIDER` | Proveedor AI | `github-copilot`, `claude-api` o `mock` |
+| `INGENIERIA_MOCK_SCENARIO` | Escenario del mock provider | `streaming`, `tool_call`, `error` |
+| `INGENIERIA_RENDER_STATS` | Habilitar stats de renderizado | `true` |
+| `RUST_LOG` | Nivel de tracing | `debug`, `info`, `warn` |
+
+## Archivos de configuracion
+
+### Config global
+
+**Ruta**: `~/.config/ingenieria-tui/config.json`
+
+```json
+{
+  "server_url": "http://localhost:3001",
+  "developer": "edwin",
+  "provider": "claude-api",
+  "model": "claude-sonnet-4-20250514",
+  "default_factory": "net"
+}
+```
+
+:::note
+El config validator usa distancia Levenshtein para sugerir correcciones cuando un campo no se reconoce. Usa `/doctor` para verificar tu configuracion.
+:::
+
+### Config MCP del proyecto
+
+**Ruta**: `.mcp.json` (raiz del proyecto)
+
+```json
+{
+  "ingenieriaServerUrl": "http://localhost:3001",
+  "clients": ["claude-code", "copilot"]
+}
+```
+
+### Archivos del sistema
+
+| Ruta | Proposito |
+|------|-----------|
+| `~/.config/ingenieria-tui/config.json` | Configuracion principal (servidor, provider, modelo) |
+| `~/.config/ingenieria-tui/keybindings.json` | Atajos de teclado personalizados |
+| `~/.config/ingenieria-tui/claude_key` | API key de Claude (persistida) |
+| `~/.config/ingenieria-tui/history/` | Sesiones guardadas (mensajes, tool calls, metadata) |
+| `~/.config/ingenieria-tui/crons.json` | Jobs cron programados |
+| `~/.config/ingenieria-tui/hooks.json` | Hooks configurables (triggers, comandos shell) |
+| `~/.config/ingenieria-tui/onboarding.json` | Estado del checklist de primer uso |
+| `~/.config/ingenieria-tui/plugins/` | Directorio de plugins (un subdirectorio por plugin con manifest.json) |
+| `mcp-servers.json` | Servers MCP adicionales (lifecycle manager multi-server) |
+
+### Hot reload
+
+Los archivos `config.json`, `keybindings.json`, `CLAUDE.md` y `.env` se recargan automaticamente al guardar cambios (debounce 500ms). No necesitas reiniciar el TUI.
+
+## Proveedores AI
+
+### GitHub Copilot
+
+- **Auth**: OAuth device flow (abre navegador)
+- **Modelos**: Cargados dinamicamente desde la API de Copilot
+- **Valor de config**: `"provider": "github-copilot"`
+
+### Claude API
+
+- **Auth**: API key de Anthropic
+- **Modelos**: `claude-sonnet-4-20250514`, `claude-haiku-4-5-20251001`, `claude-opus-4-20250514`
+- **Precios**: $3/M tokens de entrada, $15/M tokens de salida (Sonnet)
+- **Valor de config**: `"provider": "claude-api"`
+
+### Mock Provider
+
+- **Auth**: Ninguna
+- **Uso**: Testing offline con 5 escenarios deterministas
+- **Activar**: `ingenierIA --mock` o `INGENIERIA_MOCK_SCENARIO=streaming`
+- **Valor de config**: `"provider": "mock"`
+
+## Feature flags (cargo)
+
+| Feature | Incluye | Default |
+|---------|---------|---------|
+| `full` | copilot + mcp + autoskill + ide | Si |
+| `minimal` | Core TUI + Claude solamente | No |
+| `copilot` | GitHub Copilot OAuth + provider | Parte de full |
+| `mcp` | MCP tool discovery + ejecucion | Parte de full |
+| `autoskill` | Deteccion de techs + skill installer | Parte de full |
+| `ide` | IDE Bridge HTTP server (Axum) | Parte de full |
+
+La instalacion via `npm` siempre incluye el build `full`. Solo es relevante para desarrollo desde source.

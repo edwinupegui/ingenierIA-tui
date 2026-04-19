@@ -1,0 +1,29 @@
+# Seguridad: bloquear todo excepto lo listado en "files" de package.json.
+# Este archivo es una segunda capa de defensa — "files" es la principal.
+
+# Source code
+*.rs
+*.toml
+*.lock
+Cargo.*
+src/
+target/
+
+# Source maps (el error de Claude Code)
+*.map
+*.map.js
+
+# Configuracion de desarrollo
+.github/
+.git/
+docs/
+docs-site/
+installers/
+scripts/
+tests/
+
+# Secretos
+.env
+*.pem
+*.key
+credentials*

@@ -1,0 +1,79 @@
+---
+title: Multi-Agent
+description: Sistema de subagentes y equipos para tareas paralelas aisladas
+sidebar:
+  order: 9
+---
+
+## Que es
+
+El sistema multi-agent permite lanzar tareas AI aisladas que corren en paralelo sin contaminar el historial del chat principal. Cada subagente recibe su propio contexto y ejecuta una ronda de LLM con herramientas restringidas.
+
+## SubAgentes
+
+### Lanzar un subagente
+
+```
+/spawn <rol> <prompt>
+```
+
+El subagente ejecuta una sola ronda de LLM con el prompt dado. Su resultado se reporta como mensaje del sistema en el chat principal.
+
+### Roles disponibles
+
+| Rol | Proposito |
+|-----|-----------|
+| `Discovery` | Explorar el codebase, buscar archivos y patrones |
+| `Architecture` | Analizar estructura, proponer refactors |
+| `Execution` | Implementar cambios de codigo |
+| `Testing` | Generar y ejecutar tests |
+| `Planning` | Crear planes estructurados |
+| `Docs` | Generar documentacion |
+
+### Comandos
+
+| Comando | Descripcion |
+|---------|-------------|
+| `/spawn <rol> <prompt>` | Lanza un subagente con el rol y tarea indicados |
+| `/agent-list` | Lista subagentes activos con estado y rol |
+| `/agent-cancel <id>` | Cancela un subagente por su ID |
+
+### Worktree isolation
+
+Cada subagente puede operar en un **git worktree aislado**, evitando conflictos con el directorio de trabajo principal. Los cambios se aplican solo al fusionar el resultado.
+
+## Equipos
+
+Los equipos son conjuntos de subagentes que trabajan coordinados usando templates predefinidos.
+
+### Templates disponibles
+
+| Template | Descripcion |
+|----------|-------------|
+| `FullStack` | Backend + Frontend + Tests coordinados |
+| `Research` | Multiples agentes de Discovery explorando en paralelo |
+| `PlanExec` | Un Planning seguido de Execution |
+| `DocsResearch` | Discovery + Docs para documentar hallazgos |
+
+### Comandos
+
+| Comando | Descripcion |
+|---------|-------------|
+| `/team-start <template>` | Inicia un equipo con el template dado |
+| `/team-list` | Lista equipos activos y sus miembros |
+| `/team-cancel <id>` | Cancela un equipo completo |
+| `/team-mail [msg]` | Envia un mensaje al mailbox del equipo |
+
+### Mailbox IPC
+
+Los miembros del equipo se comunican via un mailbox interno. Cuando un agente termina, su resultado se postea automaticamente al mailbox. Usa `/team-mail` para inyectar mensajes adicionales.
+
+## Limites
+
+- Maximo de subagentes concurrentes: `MAX_CONCURRENT_AGENTS`
+- Maximo de equipos concurrentes: 2
+- Cada subagente ejecuta una sola ronda de LLM con tool whitelist
+
+:::caution
+Los subagentes consumen tokens adicionales de tu provider AI. Monitorea el panel de costos (`$`) cuando uses multiples agentes.
+:::

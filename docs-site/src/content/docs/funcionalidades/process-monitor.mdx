@@ -1,0 +1,54 @@
+---
+title: Process Monitor
+description: Ejecucion y monitoreo de comandos de larga duracion en tiempo real
+sidebar:
+  order: 11
+---
+
+## Que es
+
+El process monitor permite ejecutar comandos shell de larga duracion (compilacion, tests, deploys) y capturar su output en tiempo real dentro del TUI. Los procesos corren en background y se pueden inspeccionar en un panel fullscreen.
+
+## Comandos
+
+| Comando | Descripcion |
+|---------|-------------|
+| `/monitor <comando>` | Ejecuta un comando y captura su output |
+| `/monitor-list` | Lista procesos activos con PID y estado |
+| `/monitor-kill <id>` | Detiene un proceso por su ID |
+| `/monitor-show <id>` | Abre el panel fullscreen con el output del proceso |
+
+### Ejemplo
+
+```
+/monitor cargo build --release
+/monitor npm run test -- --watch
+/monitor dotnet build
+```
+
+## Panel fullscreen
+
+Al ejecutar `/monitor-show <id>`, se abre un overlay a pantalla completa con:
+- Output de stdout y stderr en tiempo real
+- Scroll manual con `↑`/`↓`
+- Modo follow (`f`) — auto-scroll al final cuando llega output nuevo
+- Kill del proceso (`k`) — terminacion cooperativa
+
+| Tecla | Accion |
+|-------|--------|
+| `↑` / `↓` | Scroll por el output |
+| `f` | Alternar follow (auto-scroll) |
+| `k` | Matar el proceso |
+| `Esc` | Cerrar panel |
+
+## Captura de output
+
+El worker captura stdout y stderr linea por linea via pipes de tokio. Cada linea se publica como `Action::MonitorOutput` al reducer para actualizacion inmediata de la UI.
+
+## Kill cooperativo
+
+Al presionar `k`, el monitor usa un `AtomicBool` que el proceso hijo revisa cada 150ms. No se envia `kill -9`; el proceso tiene oportunidad de terminar limpiamente.
+
+:::tip
+Usa `/monitor-list` para ver todos los procesos activos. Los procesos finalizados se mantienen en la lista hasta que cierres el TUI.
+:::

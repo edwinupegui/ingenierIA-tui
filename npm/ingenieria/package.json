@@ -1,0 +1,35 @@
+{
+  "name": "@your-org/ingenieria",
+  "version": "0.23.0",
+  "description": "Terminal UI para el ecosistema ingenierIA MCP Server",
+  "license": "UNLICENSED",
+  "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "bin": {
+    "ingenierIA": "bin/ingenieria-wrapper.js"
+  },
+  "files": [
+    "bin/ingenieria-wrapper.js",
+    "scripts/postinstall.js"
+  ],
+  "scripts": {
+    "postinstall": "node scripts/postinstall.js"
+  },
+  "optionalDependencies": {
+    "@your-org/ingenieria-darwin-arm64": "0.23.0",
+    "@your-org/ingenieria-darwin-x64": "0.23.0",
+    "@your-org/ingenieria-win32-x64": "0.23.0",
+    "@your-org/ingenieria-linux-x64": "0.23.0"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "keywords": [
+    "ingenieria",
+    "tui",
+    "mcp",
+    "cli"
+  ]
+}

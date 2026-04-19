@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  check:
+    name: Check · ${{ matrix.target }}
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            target: aarch64-apple-darwin
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+          components: clippy
+
+      - name: Install musl-tools (Linux)
+        if: matrix.target == 'x86_64-unknown-linux-musl'
+        run: sudo apt-get update && sudo apt-get install -y musl-tools libxcb-shape0-dev libxcb-xfixes0-dev libxcb-render0-dev libxcb1-dev
+
+      - name: Cache Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ matrix.target }}-cargo-${{ hashFiles('Cargo.lock') }}
+          restore-keys: ${{ matrix.target }}-cargo-
+
+      - name: Build
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Clippy
+        if: matrix.os != 'ubuntu-latest'
+        run: cargo clippy --target ${{ matrix.target }} -- -D warnings
+
+      - name: Tests
+        if: matrix.os != 'ubuntu-latest'
+        run: cargo test --target ${{ matrix.target }}
+
+  validate-nsis:
+    name: Validate NSIS script
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install NSIS
+        shell: pwsh
+        run: choco install nsis -y --no-progress
+
+      - name: Create dummy binary and icon
+        shell: pwsh
+        run: |
+          New-Item -Path "installers/windows/ingenieria.exe" -ItemType File -Force
+          # Generate a valid .ico file (16x16 RGBA)
+          $ms = New-Object System.IO.MemoryStream
+          $bw = New-Object System.IO.BinaryWriter($ms)
+          # ICO header: reserved=0, type=1(icon), count=1
+          $bw.Write([UInt16]0); $bw.Write([UInt16]1); $bw.Write([UInt16]1)
+          # Directory entry: 16x16, 0 colors, 0 reserved, 1 plane, 32bpp
+          $bw.Write([byte]16); $bw.Write([byte]16); $bw.Write([byte]0); $bw.Write([byte]0)
+          $bw.Write([UInt16]1); $bw.Write([UInt16]32)
+          $dataSize = 40 + (16*16*4)  # BITMAPINFOHEADER + pixels
+          $bw.Write([UInt32]$dataSize); $bw.Write([UInt32]22)  # size, offset
+          # BITMAPINFOHEADER
+          $bw.Write([UInt32]40); $bw.Write([Int32]16); $bw.Write([Int32]32)
+          $bw.Write([UInt16]1); $bw.Write([UInt16]32); $bw.Write([UInt32]0)
+          $bw.Write([UInt32]0); $bw.Write([Int32]0); $bw.Write([Int32]0)
+          $bw.Write([UInt32]0); $bw.Write([UInt32]0)
+          # Pixels (16x16 dark blue BGRA)
+          for ($i = 0; $i -lt 256; $i++) { $bw.Write([byte]72); $bw.Write([byte]55); $bw.Write([byte]45); $bw.Write([byte]255) }
+          $bw.Flush()
+          [System.IO.File]::WriteAllBytes("installers/windows/ingenieria.ico", $ms.ToArray())
+          $bw.Dispose(); $ms.Dispose()
+
+      - name: Compile NSIS installer (dry run)
+        shell: pwsh
+        run: |
+          & "C:\Program Files (x86)\NSIS\makensis.exe" "-DPRODUCT_VERSION=0.0.0-test" installers\windows\ingenieria.nsi

@@ -1,0 +1,132 @@
+---
+title: Tool Calling
+description: Ejecucion de herramientas por el AI con permisos y hooks
+sidebar:
+  order: 4
+---
+
+## Como funciona
+
+Durante una conversacion, el AI puede invocar herramientas para obtener informacion o ejecutar acciones. Las invocaciones se muestran en el chat con su nombre, argumentos y resultado.
+
+## Herramientas disponibles
+
+### Filesystem
+
+| Herramienta | Descripcion |
+|-------------|-------------|
+| `read_file` | Leer contenido de un archivo |
+| `list_directory` | Listar entradas de un directorio |
+| `search_files` | Buscar archivos por patron de nombre |
+| `grep_files` | Buscar contenido en archivos por regex |
+| `write_file` | Escribir contenido a un archivo |
+
+### MCP (servidor ingenierIA)
+
+| Herramienta | Descripcion |
+|-------------|-------------|
+| `get_factory_context` | Obtener contexto completo de una factory |
+| `get_workflow` | Obtener un workflow especifico |
+| `validate_compliance` | Ejecutar validacion de compliance |
+| `sync_project` | Sincronizar documentos del servidor |
+| `search_documents` | Buscar en todos los documentos |
+| `get_document` | Obtener documento por URI |
+| `list_factories` | Listar factories disponibles |
+| `get_agents` | Listar agentes conectados |
+
+### MCP multi-server
+
+ingenierIA TUI soporta multiples servidores MCP configurados en `mcp-servers.json`. El lifecycle manager gestiona cada server con:
+- Handshake automatico con retry
+- Modo degradado: si un server falla, los demas siguen operando
+- Discovery de tools acumulativo de todos los servers activos
+
+Usa `/mcp-status` para ver el estado de todos los servers y sus tools descubiertos.
+
+### ConfigTool
+
+Tool adaptativo que permite al AI modificar campos de configuracion del TUI. Las operaciones se validan contra el schema antes de aplicarse.
+
+## Sistema de permisos
+
+Tres modos controlan como se ejecutan las herramientas:
+
+| Modo | Comportamiento |
+|------|---------------|
+| **Standard** | Tools safe se ejecutan automaticamente; dangerous piden confirmacion |
+| **Permissive** | Todas las tools se ejecutan sin confirmacion |
+| **Strict** | Todas las tools requieren aprobacion explicita |
+
+### Modal de aprobacion
+
+Cuando una herramienta requiere confirmacion, aparece un modal anclado al fondo del chat con el nombre, argumentos y nivel de riesgo del tool. Atajos disponibles:
+
+| Tecla | Accion |
+|-------|--------|
+| `Enter` | Aprobar tools seleccionados |
+| `Esc` | Denegar todos |
+| `↑` / `↓` | Mover entre tools pendientes |
+| `Space` | Seleccionar / deseleccionar |
+| `Y` | Aceptar todo en lote |
+| `N` | Denegar todo en lote |
+| `a` | Siempre permitir este tool |
+| `d` | Siempre denegar este tool |
+| `⇧Tab` | Cambiar a modo AUTO (sin confirmaciones futuras) |
+
+### Cambiar modo
+
+Usa `/permissions` en el chat para ciclar entre modos: Standard → Permissive → Strict.
+
+## Hooks configurables
+
+Los hooks permiten ejecutar comandos shell automaticamente en puntos clave del ciclo de tool calling. Se configuran en `~/.config/ingenieria-tui/hooks.json`.
+
+### Triggers disponibles
+
+| Trigger | Momento |
+|---------|---------|
+| `PreToolUse` | Antes de ejecutar un tool |
+| `PostToolUse` | Despues de ejecutar un tool |
+| `PreCodeApply` | Antes de aplicar un code block |
+| `OnFactorySwitch` | Al cambiar de factory |
+
+### Ejemplo de configuracion
+
+```json
+{
+  "hooks": [
+    {
+      "name": "audit-bash",
+      "trigger": "PreToolUse",
+      "match": { "tool": "Bash*" },
+      "command": "echo [$INGENIERIA_TOOL_NAME] >> /tmp/audit.log",
+      "timeout_secs": 5
+    }
+  ]
+}
+```
+
+### Variables de entorno en hooks
+
+| Variable | Disponible en |
+|----------|--------------|
+| `INGENIERIA_HOOK_TRIGGER` | Todos |
+| `INGENIERIA_TOOL_NAME` | PreToolUse, PostToolUse |
+| `INGENIERIA_TOOL_ARGS` | PreToolUse, PostToolUse |
+| `INGENIERIA_FILE_PATH` | PreCodeApply |
+| `INGENIERIA_FACTORY_FROM` | OnFactorySwitch |
+| `INGENIERIA_FACTORY_TO` | OnFactorySwitch |
+| `INGENIERIA_TOOL_SUCCESS` | PostToolUse |
+| `INGENIERIA_TOOL_DURATION_MS` | PostToolUse |
+
+Usa `/hooks` para ver los hooks cargados y su configuracion.
+
+## Limites
+
+- Maximo **10 rounds** consecutivos de tool execution por turno
+- Cada round puede invocar una o mas herramientas
+- Si se alcanza el limite, el AI responde con lo que tiene hasta ese punto
+
+:::caution
+En modo Permissive, herramientas como `write_file` se ejecutan sin confirmacion. Usa este modo solo cuando confies completamente en las acciones del AI.
+:::

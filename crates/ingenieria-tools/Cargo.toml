@@ -1,0 +1,18 @@
+[package]
+name        = "ingenieria-tools"
+version.workspace = true
+edition.workspace = true
+description = "Tool validation, bash safety, hooks types, and MCP protocol for ingenierIA TUI"
+
+[dependencies]
+ingenieria-domain  = { path = "../ingenieria-domain" }
+ingenieria-runtime = { path = "../ingenieria-runtime" }
+serde            = { version = "1", features = ["derive"] }
+serde_json       = "1"
+anyhow           = "1"
+dirs             = "6"
+glob             = "0.3"
+tracing          = "0.1"
+
+[dev-dependencies]
+tempfile = "3"

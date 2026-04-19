@@ -1,0 +1,19 @@
+{
+  "name": "@your-org/ingenieria-darwin-x64",
+  "version": "0.23.0",
+  "description": "ingenierIA TUI — binario macOS Intel (x86_64)",
+  "license": "UNLICENSED",
+  "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "os": [
+    "darwin"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "files": [
+    "bin/ingenieria"
+  ]
+}

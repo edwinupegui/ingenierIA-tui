@@ -1,0 +1,104 @@
+---
+title: Flujo de chat
+description: Como funciona una conversacion con AI en ingenierIA TUI
+sidebar:
+  order: 2
+---
+
+## Diagrama del flujo
+
+```
+Input del usuario
+       │
+       ▼
+┌─────────────────┐
+│ Context injection│ ← Factory context (skills, policies, workflows)
+└────────┬────────┘
+         ▼
+┌─────────────────┐
+│   AI Provider    │ ← Copilot, Claude API o Mock
+└────────┬────────┘
+         ▼
+   ┌───────────┐     ┌──────────────┐
+   │ Respuesta │────▶│ Tool calling? │
+   │ streaming │     └──────┬───────┘
+   └───────────┘            │ si
+                            ▼
+                    ┌───────────────┐
+                    │ Ejecutar tool  │ ← Permisos segun modo
+                    └───────┬───────┘
+                            │
+                            ▼
+                    ┌───────────────┐
+                    │ AI continua   │ ← Con resultado del tool
+                    └───────┬───────┘
+                            │
+                            ▼
+                    Respuesta renderizada
+```
+
+## Paso a paso
+
+### 1. Iniciar conversacion
+
+Desde la **splash screen**, escribe tu mensaje y presiona `Enter`. Tambien puedes ir al dashboard primero (`Ctrl+D`) y luego escribir.
+
+### 2. Inyeccion de contexto
+
+Al enviar, el TUI automaticamente agrega el contexto de la factory activa:
+- Skills relevantes al tema
+- Policies que aplican
+- Workflows disponibles
+- ADRs vigentes
+- Diagnosticos LSP (errores de compilacion, warnings)
+
+El AI recibe toda esta informacion como contexto de sistema.
+
+### 3. Streaming de respuesta
+
+La respuesta llega en **tiempo real** con:
+- Renderizado markdown progresivo
+- Syntax highlighting para bloques de codigo
+- Indicadores de estado (thinking, writing, tool calling)
+
+### 4. Tool calling (opcional)
+
+Si el AI necesita informacion adicional, puede invocar herramientas:
+
+```
+[invocando read_file: src/main.rs]
+  → Leyendo archivo... ✓ (23ms)
+```
+
+Segun el modo de permisos, puede pedir tu aprobacion (`y`/`n`/`a` siempre/`d` denegar siempre).
+
+Si un tool necesita informacion adicional, aparece un **modal de elicitation** pidiendo input al usuario.
+
+### 5. Code blocks
+
+Los bloques de codigo se detectan automaticamente. Usa:
+- `/blocks` para listar todos los bloques
+- `/apply N` para aplicar el bloque N a su archivo destino
+
+### 6. Planning mode
+
+Con `/plan` activo, el AI genera un plan antes de ejecutar:
+1. Presenta pasos estructurados
+2. Valida contra compliance
+3. Espera tu aprobacion (Approve/Edit/Reject)
+
+### 7. Continuidad
+
+La conversacion mantiene contexto completo a lo largo de multiples turnos.
+
+:::note
+Si el contexto crece mucho, usa `/compact` para reducirlo manualmente. El sistema tambien compacta automaticamente al 80% del limite.
+:::
+
+### 8. Guardar y retomar
+
+Las sesiones se guardan automaticamente. Para retomar:
+- `/history` — ver historial y click para cargar
+- `/resume` — continuar la mas reciente
+- `/fork <label>` — ramificar la sesion actual
+- `/export [path]` — exportar a JSONL
